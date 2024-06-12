@@ -42,7 +42,7 @@ Provide only a rating of the quality of the provided context to nswer the questi
 
 QA_PROMPT = ChatPromptTemplate.from_messages(
     [
-        ("system", QA_SYSTEM_PROMPT_RATING),
+        ("system", QA_SYSTEM_PROMPT),
         MessagesPlaceholder("chat_history"),
         ("human", "{input}"),
     ]

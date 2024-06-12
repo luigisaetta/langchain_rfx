@@ -99,6 +99,7 @@ def get_llm(model_type):
                 service_endpoint=ENDPOINT,
                 compartment_id=COMPARTMENT_ID,
                 max_tokens=MAX_TOKENS,
+                temperature=TEMPERATURE
             )
         else:
             # Llama2

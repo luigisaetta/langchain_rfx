@@ -50,6 +50,10 @@ ADD_LLM_CHAIN_EXTRACTOR = False
 TOP_K = 8
 TOP_N = 4
 
+# to limit chat_history
+# probably in rfp can be kept low
+MAX_MSGS_IN_CHAT = 2
+
 # Oracle VS
 EMBEDDINGS_BITS = 32
 
