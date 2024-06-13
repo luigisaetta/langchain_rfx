@@ -11,7 +11,7 @@ Python Version: 3.11
 import logging
 
 # Cohere
-from langchain_cohere import ChatCohere, CohereRerank, CohereEmbeddings
+from langchain_cohere import ChatCohere, CohereRerank
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import LLMChainExtractor
 
@@ -23,12 +23,10 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 # Added LLMLingua
 from langchain_community.document_compressors import LLMLinguaCompressor
 
-# LLM
-from langchain_community.llms import OCIGenAI
-
 from factory_vector_store import get_vector_store
 from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
-from oci_llama3_oo import OCILlama3
+from oci_llama3_oo_lc import OCILlama3
+from oci_command_r_oo_lc import OCICommandR
 
 # prompts
 from oracle_chat_prompts import CONTEXT_Q_PROMPT, QA_PROMPT
@@ -69,7 +67,7 @@ def get_embed_model(model_type="OCI"):
     """
     get the Embeddings Model
     """
-    check_value_in_list(model_type, ["OCI", "COHERE"])
+    check_value_in_list(model_type, ["OCI"])
 
     if model_type == "OCI":
         embed_model = OCIGenAIEmbeddingsWithBatch(
@@ -78,10 +76,7 @@ def get_embed_model(model_type="OCI"):
             service_endpoint=ENDPOINT,
             compartment_id=COMPARTMENT_ID,
         )
-    if model_type == "COHERE":
-        embed_model = CohereEmbeddings(
-            model=COHERE_EMBED_MODEL, cohere_api_key=COHERE_API_KEY
-        )
+
     return embed_model
 
 
@@ -99,16 +94,16 @@ def get_llm(model_type):
                 service_endpoint=ENDPOINT,
                 compartment_id=COMPARTMENT_ID,
                 max_tokens=MAX_TOKENS,
-                temperature=TEMPERATURE
+                temperature=TEMPERATURE,
             )
         else:
-            # Llama2
-            llm = OCIGenAI(
-                auth_type="API_KEY",
-                model_id=OCI_GENAI_MODEL,
+            # command-r
+            llm = OCICommandR(
+                model=OCI_GENAI_MODEL,
                 service_endpoint=ENDPOINT,
                 compartment_id=COMPARTMENT_ID,
-                model_kwargs={"max_tokens": MAX_TOKENS, "temperature": TEMPERATURE},
+                max_tokens=MAX_TOKENS,
+                temperature=TEMPERATURE,
             )
     if model_type == "COHERE":
         llm = ChatCohere(

@@ -33,17 +33,16 @@ OCI_EMBED_MODEL = "cohere.embed-multilingual-v3.0"
 COHERE_EMBED_MODEL = "embed-multilingual-v3.0"
 
 # current endpoint for OCI GenAI (embed and llm) models
-ENDPOINT = "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com"
+ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com"
 
 # reranker, True only to experiment
 ADD_RERANKER = True
-# only to experiment
 COHERE_RERANKER_MODEL = "rerank-multilingual-v3.0"
 
 # only for rfx, instead of reranker
 ADD_LLMLINGUA = False
 
-# Alterbnative to above
+# Alternative to above
 ADD_LLM_CHAIN_EXTRACTOR = False
 
 # retriever
@@ -86,17 +85,18 @@ LLM_MODEL_TYPE = "OCI"
 COHERE_GENAI_MODEL = "command-r"
 # OCI
 # OCI_GENAI_MODEL = "cohere.command"
-OCI_GENAI_MODEL = "meta.llama-3-70b-instruct"
+# OCI_GENAI_MODEL = "meta.llama-3-70b-instruct"
+OCI_GENAI_MODEL = "cohere.command-r-16k"
 
 # params for LLM
 TEMPERATURE = 0.1
-MAX_TOKENS = 2048
+MAX_TOKENS = 1024
 
 # to enable streaming
 DO_STREAMING = False
 
 # for TRACING
-LANGCHAIN_PROJECT = "esse-1"
+LANGCHAIN_PROJECT = "rfx-05"
 
 # Opensearch shared params
 OPENSEARCH_SHARED_PARAMS = {
