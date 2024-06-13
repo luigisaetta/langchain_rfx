@@ -34,16 +34,16 @@ If you don't know the answer, just say that you don't know. \
 
 {context}"""
 
-QA_SYSTEM_PROMPT_RATING = """You are an assistant for question-answering tasks. \
+QA_SYSTEM_PROMPT_RATING = """You are an AI assistant. \
 Use the following pieces of retrieved context. \
 Provide only a rating of the quality of the provided context to answer the question \
-based on a scale from 1 to 10, where 10 is the best rating.\
+based on a scale from 1 to 10, where 10 is the best rating. \
 
 {context}"""
 
 QA_PROMPT = ChatPromptTemplate.from_messages(
     [
-        ("system", QA_SYSTEM_PROMPT),
+        ("system", QA_SYSTEM_PROMPT_RATING),
         MessagesPlaceholder("chat_history"),
         ("human", "{input}"),
     ]

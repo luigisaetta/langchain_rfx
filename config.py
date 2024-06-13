@@ -16,7 +16,7 @@ ADD_REFERENCES = True
 VERBOSE = False
 
 # enable tracing with LangSmith
-ENABLE_TRACING = True
+ENABLE_TRACING = False
 
 # for chunking
 # in chars
@@ -33,7 +33,7 @@ OCI_EMBED_MODEL = "cohere.embed-multilingual-v3.0"
 COHERE_EMBED_MODEL = "embed-multilingual-v3.0"
 
 # current endpoint for OCI GenAI (embed and llm) models
-ENDPOINT = "https://inference.generativeai.eu-frankfurt-1.oci.oraclecloud.com"
+ENDPOINT = "https://ppe.inference.generativeai.us-chicago-1.oci.oraclecloud.com"
 
 # reranker, True only to experiment
 ADD_RERANKER = True
@@ -86,7 +86,8 @@ COHERE_GENAI_MODEL = "command-r"
 # OCI
 # OCI_GENAI_MODEL = "cohere.command"
 # OCI_GENAI_MODEL = "meta.llama-3-70b-instruct"
-OCI_GENAI_MODEL = "cohere.command-r-16k"
+# OCI_GENAI_MODEL = "cohere.command-r-16k"
+OCI_GENAI_MODEL = "cohere.command-r-plus"
 
 # params for LLM
 TEMPERATURE = 0.1
