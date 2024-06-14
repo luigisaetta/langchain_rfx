@@ -36,7 +36,6 @@ from utils import print_configuration, check_value_in_list
 from config import (
     EMBED_MODEL_TYPE,
     OCI_EMBED_MODEL,
-    COHERE_EMBED_MODEL,
     ENDPOINT,
     VECTOR_STORE_TYPE,
     COHERE_GENAI_MODEL,
@@ -86,6 +85,8 @@ def get_llm(model_type):
     """
     check_value_in_list(model_type, ["OCI", "OCI", "COHERE"])
 
+    llm = None
+    
     if model_type == "OCI":
         # added support for LLama3
         if OCI_GENAI_MODEL.startswith("meta.llama-3"):

@@ -2,11 +2,8 @@
 Test for langChain implementation of CommandR
 """
 
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
-
 from oci_command_r_oo import OCICommandR
 
-from config import ENDPOINT
 from config_private import COMPARTMENT_ID
 
 chat = OCICommandR(
@@ -14,7 +11,7 @@ chat = OCICommandR(
     service_endpoint="https://ppe.inference.generativeai.us-chicago-1.oci.oraclecloud.com",
     compartment_id=COMPARTMENT_ID,
     max_tokens=1024,
-    is_streaming=True
+    is_streaming=True,
 )
 
 # msg = HumanMessage(content="What are the side effects of metformin?")
