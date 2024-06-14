@@ -11,9 +11,10 @@ from utils import get_console_logger
 
 # the name of the column with all the questions
 QUESTION_COL_NAME = "Question"
+LIMITS = 6
 
 
-# to handle multilingual use the dictiornary in translations.py
+# to handle multilingual use the dictionary in translations.py
 def translate(text, v_lang):
     """
     to handle labels in different lang
@@ -31,17 +32,24 @@ def process_file(file):
     input_df = pd.read_excel(file)
     # Esempio di elaborazione: mostra le prime 5 righe del DataFrame
 
-    input_df = input_df[:3]
+    input_df = input_df[:LIMITS]
 
     return input_df
 
 
 logger = get_console_logger()
 
-lang = st.sidebar.selectbox("Select Language", ["en", "es", "fr", "it"])
 
 # Titolo dell'applicazione
+st.set_page_config(layout="wide")
+
+lang = st.sidebar.selectbox("Select Language", ["en", "es", "fr", "it"])
+
+add_reranker = st.sidebar.checkbox("Add reranker")
+
 st.title("RFx AI Assistant")
+
+col1, col2 = st.columns(2)
 
 # to handle progress status and green tick
 if "processed_questions" not in st.session_state:
@@ -54,6 +62,10 @@ uploaded_file = st.sidebar.file_uploader(
 
 if uploaded_file is not None:
 
+    if add_reranker:
+        logger.info("Added reranker...")
+        logger.info("")
+
     # Carica il file e mostra il contenuto
     df = process_file(uploaded_file)
 
@@ -65,17 +77,22 @@ if uploaded_file is not None:
     questions = list(df[QUESTION_COL_NAME].values)
 
     # Show results
-    st.write(translate("Questions:", lang))
-
     # to update the dataframe in place
-    dataframe_placeholder = st.empty()
 
-    dataframe_placeholder.dataframe(df)
+    with col1:
+        st.header("Questions:")
 
-    progress_bar = st.progress(0)
+        dataframe_placeholder = st.empty()
 
-    info_placeholder = st.empty()
-    info_placeholder.info(translate("Processing started!", lang))
+        dataframe_placeholder.dataframe(df)
+
+        progress_bar = st.progress(0)
+
+        info_placeholder = st.empty()
+        info_placeholder.info(translate("Processing started!", lang))
+
+    with col2:
+        st.header("Results:")
 
     answers = []
 
@@ -84,7 +101,7 @@ if uploaded_file is not None:
         logger.info("Processing: %s ...", question)
 
         # call the GenAI
-        answer = hyde_step1_2(question)
+        answer = hyde_step1_2(question, add_reranker=add_reranker, lang=lang)
 
         answers.append(answer)
 
@@ -94,19 +111,22 @@ if uploaded_file is not None:
             lambda i: "✅" if i in st.session_state.processed_questions else ""
         )
 
-        dataframe_placeholder.dataframe(df)
+        with col1:
+            dataframe_placeholder.dataframe(df)
 
-        # update the progress bar
-        progress_bar.progress(int(i + 1) / len(questions))
+            # update the progress bar
+            progress_bar.progress(int(i + 1) / len(questions))
 
-    info_placeholder.success(translate("Processing completed!", lang))
+    with col1:
+        info_placeholder.success(translate("Processing completed!", lang))
 
     # handle output
     dict_out = {"Answers": answers}
 
     df_out = pd.DataFrame(dict_out)
 
-    st.dataframe(df_out)
+    with col2:
+        st.dataframe(df_out)
 
 else:
     st.write(translate("Load the xls file with the questions.", lang))

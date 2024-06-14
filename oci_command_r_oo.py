@@ -121,8 +121,6 @@ class OCICommandR(BaseChatModel):
         documents: list of documents to use as Context
         """
 
-        chat_detail = ChatDetails()
-
         chat_request = CohereChatRequest()
 
         # parameters
@@ -148,8 +146,11 @@ class OCICommandR(BaseChatModel):
         chat_request.message = query
 
         chat_request.chat_history = chat_history
+
         # documents to use for answering
         chat_request.documents = documents
+
+        chat_detail = ChatDetails()
 
         chat_detail.serving_mode = OnDemandServingMode(
             # here we set the model

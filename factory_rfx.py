@@ -86,7 +86,7 @@ def get_llm(model_type):
     check_value_in_list(model_type, ["OCI", "OCI", "COHERE"])
 
     llm = None
-    
+
     if model_type == "OCI":
         # added support for LLama3
         if OCI_GENAI_MODEL.startswith("meta.llama-3"):

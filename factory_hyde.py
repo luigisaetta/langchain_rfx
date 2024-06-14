@@ -2,12 +2,23 @@
 Hyde implementation based on OCI Cohere
 """
 
+from langchain_cohere import CohereRerank
+from langchain.retrievers import ContextualCompressionRetriever
+
 from oci_command_r_oo import OCICommandR
 from factory_rfx import get_embed_model
 from factory_vector_store import get_vector_store
 
-from config import EMBED_MODEL_TYPE, VECTOR_STORE_TYPE, TOP_K
-from config_private import COMPARTMENT_ID
+from preamble_libraries import preamble_dict
+
+from config import (
+    EMBED_MODEL_TYPE,
+    VECTOR_STORE_TYPE,
+    COHERE_RERANKER_MODEL,
+    TOP_K,
+    TOP_N,
+)
+from config_private import COMPARTMENT_ID, COHERE_API_KEY
 
 
 def get_task_step1(query):
@@ -16,7 +27,7 @@ def get_task_step1(query):
     """
 
     task = f"""
-    Please write a documentation passage to answer the question
+    Given a question, write a documentation passage to answer the question
     Question: {query}
     Passage:
     """
@@ -38,7 +49,7 @@ def get_llm():
     return chat
 
 
-def get_retriever():
+def get_retriever(add_reranker=False):
     # this doesn't change
     embed_model = get_embed_model(EMBED_MODEL_TYPE)
 
@@ -51,26 +62,27 @@ def get_retriever():
 
     base_retriever = v_store.as_retriever(k=TOP_K)
 
-    return base_retriever
+    if add_reranker:
+        compressor = CohereRerank(
+            cohere_api_key=COHERE_API_KEY, top_n=TOP_N, model=COHERE_RERANKER_MODEL
+        )
+
+        retriever = ContextualCompressionRetriever(
+            base_compressor=compressor, base_retriever=base_retriever
+        )
+    else:
+        retriever = base_retriever
+
+    return retriever
 
 
-def hyde_step1_2(query):
+def hyde_step1_2(query, add_reranker=False, lang="en"):
     """
     to complete
     """
 
     # this doesn't change
-    retriever = get_retriever()
-
-    preamble01 = """
-    
-    ## Task & Context
-    You are an assistant responsible for answering questions 
-    using the provided documents. 
-    Respond with detailed information and compose 
-    a comprehensive and thorough one-page document.
-    
-    """
+    retriever = get_retriever(add_reranker)
 
     chat = get_llm()
 
@@ -102,7 +114,8 @@ def hyde_step1_2(query):
     ]
 
     # print("Step 2...")
-    chat.preamble_override = preamble01
+    # choose the preamble based also on language
+    chat.preamble_override = preamble_dict[f"preamble_{lang}"]
 
     response2 = chat.invoke(query=query, chat_history=[], documents=documents_txt)
 
