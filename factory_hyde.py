@@ -15,6 +15,7 @@ from config import (
     EMBED_MODEL_TYPE,
     VECTOR_STORE_TYPE,
     COHERE_RERANKER_MODEL,
+    MAX_TOKENS,
     TOP_K,
     TOP_N,
 )
@@ -43,19 +44,22 @@ def get_llm():
         model="cohere.command-r-plus",
         service_endpoint="https://ppe.inference.generativeai.us-chicago-1.oci.oraclecloud.com",
         compartment_id=COMPARTMENT_ID,
-        max_tokens=1024,
+        max_tokens=MAX_TOKENS,
         is_streaming=False,
     )
     return chat
 
 
-def get_retriever(add_reranker=False):
-    # this doesn't change
+def get_retriever(add_reranker=False, selected_collection="ORACLE_KNOWLEDGE"):
+    """
+    selected_collection: the name of the Oracle table in OracleVS
+    """
     embed_model = get_embed_model(EMBED_MODEL_TYPE)
 
     v_store = get_vector_store(
         vector_store_type=VECTOR_STORE_TYPE,
         embed_model=embed_model,
+        selected_collection=selected_collection,
         local_index_dir=None,
         books_dir=None,
     )
@@ -76,13 +80,15 @@ def get_retriever(add_reranker=False):
     return retriever
 
 
-def hyde_step1_2(query, add_reranker=False, lang="en"):
+def hyde_step1_2(
+    query, add_reranker=False, lang="en", selected_collection="ORACLE_KNOWLEDGE"
+):
     """
     to complete
     """
 
     # this doesn't change
-    retriever = get_retriever(add_reranker)
+    retriever = get_retriever(add_reranker, selected_collection)
 
     chat = get_llm()
 
@@ -120,3 +126,33 @@ def hyde_step1_2(query, add_reranker=False, lang="en"):
     response2 = chat.invoke(query=query, chat_history=[], documents=documents_txt)
 
     return response2.data.chat_response.text
+
+
+def classic_rag(
+    query, add_reranker=False, lang="en", selected_collection="ORACLE_KNOWLEDGE"
+):
+    """
+    Do the classic rag
+    """
+    # this doesn't change
+    retriever = get_retriever(add_reranker, selected_collection)
+
+    chat = get_llm()
+
+    docs = retriever.invoke(query)
+
+    documents_txt = [
+        {
+            "id": str(i + 1),
+            "snippet": doc.page_content,
+            "source": doc.metadata["source"],
+            "page": str(doc.metadata["page"]),
+        }
+        for i, doc in enumerate(docs)
+    ]
+
+    chat.preamble_override = preamble_dict[f"preamble_{lang}"]
+
+    response = chat.invoke(query=query, chat_history=[], documents=documents_txt)
+
+    return response.data.chat_response.text

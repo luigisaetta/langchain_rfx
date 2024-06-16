@@ -17,12 +17,14 @@ import oracledb
 from langchain_community.vectorstores import FAISS
 from langchain_community.vectorstores import OpenSearchVectorSearch
 from langchain_community.vectorstores import Qdrant
-from langchain_community.vectorstores.oraclevs import OracleVS
+
+# from langchain_community.vectorstores.oraclevs import OracleVS
 from langchain_community.vectorstores.utils import DistanceStrategy
 
 # Qdrant
 from qdrant_client import QdrantClient
 
+from oraclevs_4_rfx import OracleVS4RFX
 from utils import check_value_in_list
 from chunk_index_utils import load_and_rebuild_faiss_index
 
@@ -43,7 +45,11 @@ from config_private import (
 
 
 def get_vector_store(
-    vector_store_type, embed_model, local_index_dir=None, books_dir=None
+    vector_store_type,
+    embed_model,
+    selected_collection,
+    local_index_dir=None,
+    books_dir=None,
 ):
     """
     local_index_dir, books_dir only needed for FAISS
@@ -84,9 +90,9 @@ def get_vector_store(
         try:
             connection = oracledb.connect(user=DB_USER, password=DB_PWD, dsn=dsn)
 
-            v_store = OracleVS(
+            v_store = OracleVS4RFX(
                 client=connection,
-                table_name=COLLECTION_NAME,
+                table_name=selected_collection,
                 distance_strategy=DistanceStrategy.COSINE,
                 embedding_function=embed_model,
             )

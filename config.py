@@ -91,7 +91,7 @@ OCI_GENAI_MODEL = "cohere.command-r-plus"
 
 # params for LLM
 TEMPERATURE = 0.1
-MAX_TOKENS = 1024
+MAX_TOKENS = 2048
 
 # to enable streaming
 DO_STREAMING = False
