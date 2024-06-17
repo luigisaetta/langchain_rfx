@@ -39,6 +39,32 @@ def get_list_collections():
     return list_collections
 
 
+def get_books(collection_name):
+    """
+    return the list of books in collection
+    """
+    DSN = f"{DB_HOST_IP}/{DB_SERVICE}"
+
+    conn = oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN)
+
+    list_books = OracleVS4RFX.list_books_in_collection(
+        connection=conn, collection_name=collection_name
+    )
+
+    return list_books
+
+
+def show_books(selected_collection):
+    """
+    show in the log the list of books in the collection
+    """
+    list_books = get_books(selected_collection)
+    logger.info("List of books:")
+    for book in list_books:
+        logger.info("%s", book)
+    logger.info("")
+
+
 # Funzione per processare il file XLS
 def process_file(file):
     """
@@ -126,6 +152,9 @@ if uploaded_file is not None:
     # show the collection chosen
     logger.info("Collection chosen: %s", selected_collection)
     logger.info("")
+
+    if is_debug:
+        show_books(selected_collection)
 
     for i, question in enumerate(questions):
 

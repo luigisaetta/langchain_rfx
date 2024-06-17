@@ -22,9 +22,29 @@ from config import (
 from config_private import COMPARTMENT_ID, COHERE_API_KEY
 
 
+def format_docs_for_cohere(l_docs):
+    """ "
+    format documents in the format expected by Cohere command-r/plus
+    l_docs: list of Document
+    """
+
+    # Cohere wants a map
+    documents_txt = [
+        {
+            "id": str(i + 1),
+            "snippet": doc.page_content,
+            "source": doc.metadata["source"],
+            "page": str(doc.metadata["page"]),
+        }
+        for i, doc in enumerate(l_docs)
+    ]
+
+    return documents_txt
+
+
 def get_task_step1(query):
     """
-    to complete
+    Create the query for an Hyde doc
     """
 
     task = f"""
@@ -34,6 +54,13 @@ def get_task_step1(query):
     """
 
     return task
+
+
+def get_text_from_response(response):
+    """
+    extract text from OCI response
+    """
+    return response.data.chat_response.text
 
 
 def get_llm():
@@ -50,6 +77,11 @@ def get_llm():
     return chat
 
 
+#
+# This has been modified to support selection over
+# multiple collections
+# for now only O23AI
+#
 def get_retriever(add_reranker=False, selected_collection="ORACLE_KNOWLEDGE"):
     """
     selected_collection: the name of the Oracle table in OracleVS
@@ -84,7 +116,8 @@ def hyde_step1_2(
     query, add_reranker=False, lang="en", selected_collection="ORACLE_KNOWLEDGE"
 ):
     """
-    to complete
+    This method supports the implementation of hyde
+    see: https://arxiv.org/abs/2212.10496
     """
 
     # this doesn't change
@@ -92,32 +125,24 @@ def hyde_step1_2(
 
     chat = get_llm()
 
-    # step1
+    # step1: ask to the llm to answer to the query
+    # creating an hypothetical document
     task = get_task_step1(query)
-
-    # print("Step 1...")
 
     # resetting preamble
     chat.preamble_override = None
 
+    # get the hyde doc
     response1 = chat.invoke(query=task, chat_history=[], documents=[])
 
     # this is the hypotethical doc produced by step1
     hyde_doc = response1.data.chat_response.text
 
     # step 2
-    # do the semantic search
+    # do the semantic search searching for docs similar to hyde_doc
     docs = retriever.invoke(hyde_doc)
 
-    documents_txt = [
-        {
-            "id": str(i + 1),
-            "snippet": doc.page_content,
-            "source": doc.metadata["source"],
-            "page": str(doc.metadata["page"]),
-        }
-        for i, doc in enumerate(docs)
-    ]
+    documents_txt = format_docs_for_cohere(docs)
 
     # print("Step 2...")
     # choose the preamble based also on language
@@ -125,7 +150,7 @@ def hyde_step1_2(
 
     response2 = chat.invoke(query=query, chat_history=[], documents=documents_txt)
 
-    return response2.data.chat_response.text
+    return get_text_from_response(response2)
 
 
 def classic_rag(
@@ -141,18 +166,10 @@ def classic_rag(
 
     docs = retriever.invoke(query)
 
-    documents_txt = [
-        {
-            "id": str(i + 1),
-            "snippet": doc.page_content,
-            "source": doc.metadata["source"],
-            "page": str(doc.metadata["page"]),
-        }
-        for i, doc in enumerate(docs)
-    ]
+    documents_txt = format_docs_for_cohere(docs)
 
     chat.preamble_override = preamble_dict[f"preamble_{lang}"]
 
     response = chat.invoke(query=query, chat_history=[], documents=documents_txt)
 
-    return response.data.chat_response.text
+    return get_text_from_response(response)
