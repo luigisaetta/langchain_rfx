@@ -15,6 +15,7 @@ from factory_rfx import get_embed_model
 from chunk_index_utils import (
     load_book_and_split,
     add_docs_to_23ai,
+    create_collection_and_add_docs,
 )
 
 from config_private import DB_USER, DB_PWD, DB_HOST_IP, DB_SERVICE
@@ -74,9 +75,10 @@ def load_uploaded_file_in_vector_store(v_uploaded_file, collection_name):
         # add books to existing
         add_docs_to_23ai(docs, embed_model, collection_name)
     else:
+        # this way it is safe that the collection doesn't exists
         logger.info("Calling from_documents")
-        logger.info("Not yet implemented !!!")
-        logger.info("")
+
+        create_collection_and_add_docs(docs, embed_model, collection_name)
 
 
 #

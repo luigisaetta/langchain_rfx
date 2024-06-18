@@ -69,9 +69,36 @@ def load_book_and_split(book_path):
     return docs
 
 
+def create_collection_and_add_docs(docs, embed_model, collection_name):
+    """
+    To be used only for a NEW collection
+    """
+    logger = get_console_logger()
+
+    try:
+        dsn = f"{DB_HOST_IP}:1521/{DB_SERVICE}"
+
+        connection = oracledb.connect(user=DB_USER, password=DB_PWD, dsn=dsn)
+
+        OracleVS.from_documents(
+            docs,
+            embed_model,
+            client=connection,
+            table_name=collection_name,
+            distance_strategy=DistanceStrategy.COSINE,
+        )
+
+        logger.info("Created collection and documents saved...")
+
+    except oracledb.Error as e:
+        err_msg = "An error occurred in create_colection_and_add_docs: " + str(e)
+        logger.error(err_msg)
+
+
 def add_docs_to_23ai(docs, embed_model, collection_name):
     """
     add docs from a book to Oracle vector store
+    This is used for an existing collection
     """
     logger = get_console_logger()
 
