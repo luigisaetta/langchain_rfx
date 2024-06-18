@@ -1,5 +1,5 @@
 """"
-Preamble_library
+Preamble_library for using Cohere Command-R
 """
 
 preamble_dict = {
@@ -37,6 +37,6 @@ preamble_dict = {
     en utilisant les documents fournis. 
     Répondez en français, avec des informations détaillées 
     et rédigez un document exhaustif d'au moins une page.
-    
+
     """,
 }

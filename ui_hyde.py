@@ -6,7 +6,7 @@ import oracledb
 import streamlit as st
 import pandas as pd
 
-from factory_hyde import hyde_step1_2, classic_rag
+from factory_hyde import hyde_rag, classic_rag
 from translations import translations
 from utils import get_console_logger
 from oraclevs_4_rfx import OracleVS4RFX
@@ -15,7 +15,16 @@ from config_private import DB_USER, DB_PWD, DB_HOST_IP, DB_SERVICE
 
 # the name of the column with all the questions
 QUESTION_COL_NAME = "Question"
+
+# TODO: remove in longer tests
 LIMITS = 6
+
+
+def reset_ui():
+    """
+    reset the UI
+    """
+    st.session_state.processed_questions = set()
 
 
 # to handle multilingual use the dictionary in translations.py
@@ -26,15 +35,24 @@ def translate(text, v_lang):
     return translations.get(v_lang, {}).get(text, text)
 
 
+def get_db_connection():
+    """
+    get a connection to db
+    """
+    dsn = f"{DB_HOST_IP}/{DB_SERVICE}"
+
+    conn = oracledb.connect(user=DB_USER, password=DB_PWD, dsn=dsn)
+
+    return conn
+
+
 def get_list_collections():
     """
     return the list of available collections
     """
-    DSN = f"{DB_HOST_IP}/{DB_SERVICE}"
+    conn = get_db_connection()
 
-    conn = oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN)
-
-    list_collections = OracleVS4RFX.list_vs_collections(conn)
+    list_collections = OracleVS4RFX.list_collections(conn)
 
     return list_collections
 
@@ -43,9 +61,7 @@ def get_books(collection_name):
     """
     return the list of books in collection
     """
-    DSN = f"{DB_HOST_IP}/{DB_SERVICE}"
-
-    conn = oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN)
+    conn = get_db_connection()
 
     list_books = OracleVS4RFX.list_books_in_collection(
         connection=conn, collection_name=collection_name
@@ -54,11 +70,11 @@ def get_books(collection_name):
     return list_books
 
 
-def show_books(selected_collection):
+def show_books(the_collection):
     """
     show in the log the list of books in the collection
     """
-    list_books = get_books(selected_collection)
+    list_books = get_books(the_collection)
     logger.info("List of books:")
     for book in list_books:
         logger.info("%s", book)
@@ -85,10 +101,19 @@ logger = get_console_logger()
 
 # Titolo dell'applicazione
 st.set_page_config(layout="wide")
+st.title("RFx AI Assistant")
+
+# to reset
+if st.sidebar.button("Reset"):
+    # reset the UI
+    reset_ui()
 
 is_debug = st.sidebar.checkbox("Debug")
 
 lang = st.sidebar.selectbox("Select Language", ["en", "es", "fr", "it"])
+
+st.sidebar.header("RAG/LLM")
+llm_model = st.sidebar.selectbox("Select LLM", ["Cohere-plus", "Llama3"])
 
 add_reranker = st.sidebar.checkbox("Add reranker")
 enable_hyde = st.sidebar.checkbox("Enable Hyde")
@@ -96,11 +121,9 @@ enable_hyde = st.sidebar.checkbox("Enable Hyde")
 # Init list of collections
 oraclecs_collections_list = get_list_collections()
 selected_collection = st.sidebar.selectbox(
-    "Select documents collections", oraclecs_collections_list
+    translate("Select documents collections", lang), oraclecs_collections_list
 )
-
-
-st.title("RFx AI Assistant")
+st.sidebar.markdown("----------")
 
 col1, col2 = st.columns(2)
 
@@ -165,7 +188,7 @@ if uploaded_file is not None:
             if is_debug:
                 logger.info("Enabled hyde...")
 
-            answer = hyde_step1_2(
+            answer = hyde_rag(
                 question,
                 add_reranker=add_reranker,
                 lang=lang,

@@ -13,7 +13,7 @@ class OracleVS4RFX(OracleVS):
     """
 
     @classmethod
-    def list_vs_collections(cls, connection: Connection):
+    def list_collections(cls, connection: Connection):
         """
         return a list of all collections (tables) with a type vector
         in the schema in use

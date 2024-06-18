@@ -65,7 +65,7 @@ def get_text_from_response(response):
 
 def get_llm():
     """
-    to complete
+    return the llm model
     """
     chat = OCICommandR(
         model="cohere.command-r-plus",
@@ -112,7 +112,7 @@ def get_retriever(add_reranker=False, selected_collection="ORACLE_KNOWLEDGE"):
     return retriever
 
 
-def hyde_step1_2(
+def hyde_rag(
     query, add_reranker=False, lang="en", selected_collection="ORACLE_KNOWLEDGE"
 ):
     """
@@ -125,8 +125,10 @@ def hyde_step1_2(
 
     chat = get_llm()
 
-    # step1: ask to the llm to answer to the query
+    # Hyde step1: ask to the llm to answer to the query
     # creating an hypothetical document
+
+    # formulate the task
     task = get_task_step1(query)
 
     # resetting preamble
@@ -136,7 +138,7 @@ def hyde_step1_2(
     response1 = chat.invoke(query=task, chat_history=[], documents=[])
 
     # this is the hypotethical doc produced by step1
-    hyde_doc = response1.data.chat_response.text
+    hyde_doc = get_text_from_response(response1)
 
     # step 2
     # do the semantic search searching for docs similar to hyde_doc
@@ -145,7 +147,7 @@ def hyde_step1_2(
     documents_txt = format_docs_for_cohere(docs)
 
     # print("Step 2...")
-    # choose the preamble based also on language
+    # choose the preamble based on target language
     chat.preamble_override = preamble_dict[f"preamble_{lang}"]
 
     response2 = chat.invoke(query=query, chat_history=[], documents=documents_txt)

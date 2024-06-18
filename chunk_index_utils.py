@@ -24,7 +24,6 @@ from config import (
     CHUNK_OVERLAP,
     OPENSEARCH_URL,
     OPENSEARCH_INDEX_NAME,
-    COLLECTION_NAME,
 )
 from config_private import (
     OPENSEARCH_USER,
@@ -70,7 +69,7 @@ def load_book_and_split(book_path):
     return docs
 
 
-def add_docs_to_23ai(docs, embed_model):
+def add_docs_to_23ai(docs, embed_model, collection_name):
     """
     add docs from a book to Oracle vector store
     """
@@ -83,7 +82,7 @@ def add_docs_to_23ai(docs, embed_model):
 
         v_store = OracleVS(
             client=connection,
-            table_name=COLLECTION_NAME,
+            table_name=collection_name,
             distance_strategy=DistanceStrategy.COSINE,
             embedding_function=embed_model,
         )

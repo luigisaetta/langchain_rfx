@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
-from factory_hyde import hyde_step1_2
+from factory_hyde import hyde_rag
 from utils import get_console_logger
 from pdf_utils import PDF
 
@@ -53,7 +53,7 @@ logger.info("")
 
 answers = []
 for question in tqdm(questions):
-    answer = hyde_step1_2(question)
+    answer = hyde_rag(question)
 
     answers.append(answer)
 
