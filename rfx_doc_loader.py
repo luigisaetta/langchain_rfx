@@ -4,6 +4,7 @@ Document Loader
 
 import os
 import tempfile
+import pandas as pd
 import oracledb
 import streamlit as st
 
@@ -76,7 +77,7 @@ def load_uploaded_file_in_vector_store(v_uploaded_file, collection_name):
         add_docs_to_23ai(docs, embed_model, collection_name)
     else:
         # this way it is safe that the collection doesn't exists
-        logger.info("Calling from_documents")
+        logger.info("Creating the collection and adding documents..")
 
         create_collection_and_add_docs(docs, embed_model, collection_name)
 
@@ -89,9 +90,9 @@ if "uploaded_files" not in st.session_state:
     st.session_state.uploaded_files = []
 
 
-st.title("RFx Document Loader")
+st.title("23AI Document Loader")
 
-col1 = st.columns(1)
+col1, col2 = st.columns(2)
 
 is_debug = st.sidebar.checkbox("Debug")
 
@@ -100,7 +101,7 @@ lang = st.sidebar.selectbox("Select Language", ["en", "es", "fr", "it"])
 # Init list of collections
 oraclecs_collections_list = get_list_collections()
 
-# add NEW to create a new one
+# add NEW to enable to create a new one
 shown_collections_list = oraclecs_collections_list + ["NEW"]
 
 selected_collection = st.sidebar.selectbox(
@@ -121,3 +122,9 @@ if uploaded_file is not None:
     load_uploaded_file_in_vector_store(uploaded_file, selected_collection)
 
     st.session_state.uploaded_files.append(uploaded_file.name)
+
+    df_dict = {"Document loaded": st.session_state.uploaded_files}
+    df = pd.DataFrame(df_dict)
+
+    with col1:
+        st.dataframe(df)

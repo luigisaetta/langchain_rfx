@@ -91,7 +91,7 @@ def create_collection_and_add_docs(docs, embed_model, collection_name):
         logger.info("Created collection and documents saved...")
 
     except oracledb.Error as e:
-        err_msg = "An error occurred in create_colection_and_add_docs: " + str(e)
+        err_msg = "An error occurred in create_collection_and_add_docs: " + str(e)
         logger.error(err_msg)
 
 
