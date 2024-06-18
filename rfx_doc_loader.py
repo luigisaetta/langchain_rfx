@@ -69,7 +69,14 @@ def load_uploaded_file_in_vector_store(v_uploaded_file, collection_name):
 
     embed_model = get_embed_model()
 
-    add_docs_to_23ai(docs, embed_model, collection_name)
+    # check if collection exists
+    if collection_name in get_list_collections():
+        # add books to existing
+        add_docs_to_23ai(docs, embed_model, collection_name)
+    else:
+        logger.info("Calling from_documents")
+        logger.info("Not yet implemented !!!")
+        logger.info("")
 
 
 #
@@ -90,9 +97,16 @@ lang = st.sidebar.selectbox("Select Language", ["en", "es", "fr", "it"])
 
 # Init list of collections
 oraclecs_collections_list = get_list_collections()
+
+# add NEW to create a new one
+shown_collections_list = oraclecs_collections_list + ["NEW"]
+
 selected_collection = st.sidebar.selectbox(
-    "Select documents collections", oraclecs_collections_list
+    "Select documents collections", shown_collections_list
 )
+
+if selected_collection == "NEW":
+    selected_collection = st.sidebar.text_input("Insert the name of the new collection")
 
 # Caricamento del file
 uploaded_file = st.sidebar.file_uploader(

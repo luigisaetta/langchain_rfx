@@ -113,7 +113,9 @@ is_debug = st.sidebar.checkbox("Debug")
 lang = st.sidebar.selectbox("Select Language", ["en", "es", "fr", "it"])
 
 st.sidebar.header("RAG/LLM")
-llm_model = st.sidebar.selectbox("Select LLM", ["Cohere-plus", "Llama3"])
+llm_model = st.sidebar.selectbox(
+    translate("Select LLM", lang), ["Cohere-plus", "Llama3"]
+)
 
 add_reranker = st.sidebar.checkbox("Add reranker")
 enable_hyde = st.sidebar.checkbox("Enable Hyde")

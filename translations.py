@@ -13,6 +13,7 @@ translations = {
         "Processing started!": "Processing Started!",
         "Processing completed!": "Processing completed!",
         "Select documents collections": "Select documents collections",
+        "Select LLM": "Select LLM",
     },
     "it": {
         "Choose an xls file": "Scegli un file xls!",
@@ -24,6 +25,7 @@ translations = {
         "Processing started!": "Elaborazioni iniziate!",
         "Processing completed!": "Elaborazioni completate!",
         "Select documents collections": "Seleziona una collection",
+        "Select LLM": "Seleziona un LLM",
     },
     "es": {
         "Hello, World!": "¡Hola, Mundo!",
