@@ -162,9 +162,7 @@ if uploaded_file is not None:
     logger.info("Loading file: %s", uploaded_file.name)
 
     with st.spinner("Loading in progress.."):
-        status = load_uploaded_file_in_vector_store(
-            uploaded_file, selected_collection
-        )
+        status = load_uploaded_file_in_vector_store(uploaded_file, selected_collection)
 
     if status == "OK":
         # add to the list

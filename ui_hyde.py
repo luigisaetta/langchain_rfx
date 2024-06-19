@@ -6,7 +6,12 @@ import oracledb
 import streamlit as st
 import pandas as pd
 
-from factory_hyde import hyde_rag, classic_rag
+from factory_hyde import (
+    hyde_rag,
+    classic_rag,
+    get_text_from_response,
+    get_citations_from_response,
+)
 from translations import translations
 from utils import get_console_logger
 from oraclevs_4_rfx import OracleVS4RFX
@@ -119,6 +124,7 @@ llm_model = st.sidebar.selectbox(
 
 add_reranker = st.sidebar.checkbox("Add reranker")
 enable_hyde = st.sidebar.checkbox("Enable Hyde")
+enable_citations = st.sidebar.checkbox("Enable citations")
 
 # Init list of collections
 oraclecs_collections_list = get_list_collections()
@@ -188,27 +194,37 @@ if uploaded_file is not None:
         # call the GenAI
         if enable_hyde:
             if is_debug:
-                logger.info("Enabled hyde...")
+                logger.info("Enabled Hyde...")
 
-            answer = hyde_rag(
+            response = hyde_rag(
                 question,
                 add_reranker=add_reranker,
                 lang=lang,
                 selected_collection=selected_collection,
             )
         else:
-            answer = classic_rag(
+            response = classic_rag(
                 question,
                 add_reranker=add_reranker,
                 lang=lang,
                 selected_collection=selected_collection,
             )
 
+        answer = get_text_from_response(response)
+
         answers.append(answer)
 
         if is_debug:
             logger.info("Answer: %s", answer)
             logger.info("")
+
+            # only for Cohere
+            if ("Cohere" in llm_model) and enable_citations:
+                citations = get_citations_from_response(response)
+
+                for citation in citations:
+                    logger.info("Citation: %s", citation)
+                logger.info("")
 
         # register it has been processed
         st.session_state.processed_questions.add(i)

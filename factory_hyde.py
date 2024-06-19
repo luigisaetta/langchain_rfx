@@ -8,6 +8,8 @@ from langchain.retrievers import ContextualCompressionRetriever
 from oci_command_r_oo import OCICommandR
 from factory_rfx import get_embed_model
 from factory_vector_store import get_vector_store
+from oci_citations_utils import extract_complete_citations
+from utils import get_console_logger
 
 from preamble_libraries import preamble_dict
 
@@ -20,6 +22,18 @@ from config import (
     TOP_N,
 )
 from config_private import COMPARTMENT_ID, COHERE_API_KEY
+
+
+def compute_total_chars(preamble, question, documents, response):
+    """
+    compute the total n. of chars exchanged with llm
+    """
+    tot_chars = len(preamble) + len(question) + len(get_text_from_response(response))
+
+    for doc in documents:
+        tot_chars += len(doc)
+
+    return tot_chars
 
 
 def format_docs_for_cohere(l_docs):
@@ -61,6 +75,16 @@ def get_text_from_response(response):
     extract text from OCI response
     """
     return response.data.chat_response.text
+
+
+def get_citations_from_response(response):
+    """
+    Extract from the response the citations
+    only to be used with Cohere
+    """
+    citations = extract_complete_citations(response)
+
+    return citations
 
 
 def get_llm():
@@ -152,7 +176,7 @@ def hyde_rag(
 
     response2 = chat.invoke(query=query, chat_history=[], documents=documents_txt)
 
-    return get_text_from_response(response2)
+    return response2
 
 
 def classic_rag(
@@ -161,6 +185,8 @@ def classic_rag(
     """
     Do the classic rag
     """
+    logger = get_console_logger()
+
     # this doesn't change
     retriever = get_retriever(add_reranker, selected_collection)
 
@@ -174,4 +200,11 @@ def classic_rag(
 
     response = chat.invoke(query=query, chat_history=[], documents=documents_txt)
 
-    return get_text_from_response(response)
+    tot_chars = compute_total_chars(
+        preamble_dict[f"preamble_{lang}"], query, documents_txt, response
+    )
+
+    logger.info("Total characters to/from LLM: %s", tot_chars)
+    logger.info("")
+
+    return response
