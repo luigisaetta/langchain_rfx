@@ -69,8 +69,9 @@ def load_book_and_split(book_path):
     return docs
 
 
-def create_collection_and_add_docs(docs, embed_model, collection_name):
+def create_collection_and_add_docs_to_23ai(docs, embed_model, collection_name):
     """
+    create the collection and load docs in that collection
     To be used only for a NEW collection
     """
     logger = get_console_logger()
