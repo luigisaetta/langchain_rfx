@@ -5,18 +5,20 @@ Hyde implementation based on OCI Cohere
 from langchain_cohere import CohereRerank
 from langchain.retrievers import ContextualCompressionRetriever
 
+from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
 from oci_command_r_oo import OCICommandR
-from factory_rfx import get_embed_model
 from factory_vector_store import get_vector_store
 from oci_citations_utils import extract_complete_citations
-from utils import get_console_logger
+from utils import get_console_logger, check_value_in_list
 
 from preamble_libraries import preamble_dict
 
 from config import (
     EMBED_MODEL_TYPE,
+    OCI_EMBED_MODEL,
     VECTOR_STORE_TYPE,
     ENDPOINT,
+    TEMPERATURE,
     COHERE_RERANKER_MODEL,
     MAX_TOKENS,
     TOP_K,
@@ -57,6 +59,25 @@ def format_docs_for_cohere(l_docs):
     return documents_txt
 
 
+def get_embed_model(model_type="OCI"):
+    """
+    get the Embeddings Model
+    """
+    check_value_in_list(model_type, ["OCI"])
+
+    embed_model = None
+
+    if model_type == "OCI":
+        embed_model = OCIGenAIEmbeddingsWithBatch(
+            auth_type="API_KEY",
+            model_id=OCI_EMBED_MODEL,
+            service_endpoint=ENDPOINT,
+            compartment_id=COMPARTMENT_ID,
+        )
+
+    return embed_model
+
+
 def get_task_step1(query):
     """
     Create the query for an Hyde doc
@@ -91,12 +112,15 @@ def get_citations_from_response(response):
 def get_llm(llm_model):
     """
     return the llm model
+
+    for now supports command-r and command-r-plus
     """
     chat = OCICommandR(
         model=llm_model,
         service_endpoint=ENDPOINT,
         compartment_id=COMPARTMENT_ID,
         max_tokens=MAX_TOKENS,
+        temperature=TEMPERATURE,
         is_streaming=False,
     )
     return chat

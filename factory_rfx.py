@@ -38,7 +38,6 @@ from config import (
     OCI_EMBED_MODEL,
     ENDPOINT,
     VECTOR_STORE_TYPE,
-    COHERE_GENAI_MODEL,
     OCI_GENAI_MODEL,
     TEMPERATURE,
     MAX_TOKENS,
@@ -106,13 +105,6 @@ def get_llm(model_type):
                 max_tokens=MAX_TOKENS,
                 temperature=TEMPERATURE,
             )
-    if model_type == "COHERE":
-        llm = ChatCohere(
-            cohere_api_key=COHERE_API_KEY,
-            model=COHERE_GENAI_MODEL,
-            max_tokens=MAX_TOKENS,
-            temperature=TEMPERATURE,
-        )
     return llm
 
 

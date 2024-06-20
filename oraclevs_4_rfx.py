@@ -23,6 +23,7 @@ class OracleVS4RFX(OracleVS):
                 SELECT DISTINCT table_name
                 FROM user_tab_columns
                 WHERE data_type = 'VECTOR'
+                ORDER by table_name ASC
                 """
 
         with connection.cursor() as cursor:

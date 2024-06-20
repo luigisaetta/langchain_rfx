@@ -53,7 +53,8 @@ logger.info("")
 
 answers = []
 for question in tqdm(questions):
-    answer = hyde_rag(question)
+    answer = hyde_rag(question,
+                      llm_model="cohere.command-r-plus")
 
     answers.append(answer)
 
