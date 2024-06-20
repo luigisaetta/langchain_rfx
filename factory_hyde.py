@@ -8,7 +8,7 @@ from langchain.retrievers import ContextualCompressionRetriever
 from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
 from oci_command_r_oo import OCICommandR
 from factory_vector_store import get_vector_store
-from oci_citations_utils import extract_complete_citations
+from oci_citations_utils import extract_complete_citations, extract_document_list
 from utils import get_console_logger, check_value_in_list
 
 from preamble_libraries import preamble_dict
@@ -107,6 +107,13 @@ def get_citations_from_response(response):
     citations = extract_complete_citations(response)
 
     return citations
+
+
+def get_documents_from_response(response):
+    """
+    get the documents for citations
+    """
+    return extract_document_list(response)
 
 
 def get_llm(llm_model):

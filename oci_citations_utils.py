@@ -12,7 +12,7 @@ from oci.response import Response
 
 def extract_document_list(response: Response):
     """
-    This function extract form the Cohere response
+    This function extract from the Cohere response
     in the section for citations the list of documents
     """
     extracted_docs = []

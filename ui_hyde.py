@@ -11,6 +11,7 @@ from factory_hyde import (
     classic_rag,
     get_text_from_response,
     get_citations_from_response,
+    get_documents_from_response,
 )
 from translations import translations
 from utils import get_console_logger, remove_path_from_ref
@@ -108,6 +109,31 @@ def show_books(the_collection):
         logger.info("%s", remove_path_from_ref(book))
 
     logger.info("")
+
+
+def highlight_substrings(text, delimiters, doc_ids_list):
+    """
+    For citations
+    Evidenzia le sottostringhe in un testo e aggiunge le liste di doc_id tra parentesi quadre.
+
+    Args:
+    - text (str): il testo originale.
+    - delimiters (list of tuples): ogni tupla contiene (start, end).
+    - doc_ids_list (list of lists): lista delle liste di doc_id associati ai delimitatori.
+
+    Returns:
+    - str: il testo con le sottostringhe evidenziate e le liste di doc_id aggiunte.
+    """
+    combined = list(zip(delimiters, doc_ids_list))
+    combined.sort(key=lambda x: x[0][0], reverse=True)
+
+    for (start, end), doc_ids in combined:
+        original_substring = text[start:end]
+        highlighted_substring = f"{original_substring}"
+        doc_id_str = f' [{", ".join(doc_ids)}]'
+        text = text[:start] + highlighted_substring + doc_id_str + text[end:]
+
+    return text
 
 
 # Funzione per processare il file XLS
@@ -211,15 +237,13 @@ if uploaded_file is not None:
     if is_debug:
         show_books(selected_collection)
 
+    # loop to process all questions
     for i, question in enumerate(questions):
 
         logger.info("Processing: %s ...", question)
 
         # call the GenAI
         if enable_hyde:
-            if is_debug:
-                logger.info("Enabled Hyde...")
-
             response = hyde_rag(
                 question,
                 llm_model,
@@ -238,7 +262,32 @@ if uploaded_file is not None:
 
         answer = get_text_from_response(response)
 
-        answers.append(answer)
+        if ("cohere" in llm_model) and enable_citations:
+            # handle citations
+            # modify answer to add citations
+            citations = get_citations_from_response(response)
+
+            span_demarks = []
+            doc_ids = []
+
+            for citation in citations:
+                span_demarks.append(citation["interval"])
+
+                docs_for_this_citation = []
+                for doc in citation["documents"]:
+                    docs_for_this_citation.append(doc["id"])
+                doc_ids.append(docs_for_this_citation)
+
+                assert len(doc_ids) == len(span_demarks)
+
+            answer = highlight_substrings(answer, span_demarks, doc_ids)
+
+            # adding docs
+            cited_docs = get_documents_from_response(response)
+
+            answer += "\n\n"
+            for cited_doc in cited_docs:
+                answer += str(cited_doc) + "\n"
 
         if is_debug:
             logger.info("Answer: %s", answer)
@@ -246,11 +295,12 @@ if uploaded_file is not None:
 
             # only for Cohere
             if ("cohere" in llm_model) and enable_citations:
-                citations = get_citations_from_response(response)
-
                 for citation in citations:
                     logger.info("Citation: %s", citation)
                 logger.info("")
+
+        # add here, because it has been eventually modified for citations
+        answers.append(answer)
 
         # register it has been processed
         st.session_state.processed_questions.add(i)
