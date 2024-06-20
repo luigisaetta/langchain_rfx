@@ -82,8 +82,7 @@ FAISS_DIR = "./faiss_index"
 
 # COHERE, OCI
 LLM_MODEL_TYPE = "OCI"
-# Cohere params
-COHERE_GENAI_MODEL = "command-r"
+
 # OCI
 # OCI_GENAI_MODEL = "cohere.command"
 # OCI_GENAI_MODEL = "meta.llama-3-70b-instruct"

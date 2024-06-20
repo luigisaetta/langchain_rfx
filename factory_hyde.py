@@ -16,6 +16,7 @@ from preamble_libraries import preamble_dict
 from config import (
     EMBED_MODEL_TYPE,
     VECTOR_STORE_TYPE,
+    ENDPOINT,
     COHERE_RERANKER_MODEL,
     MAX_TOKENS,
     TOP_K,
@@ -87,13 +88,13 @@ def get_citations_from_response(response):
     return citations
 
 
-def get_llm():
+def get_llm(llm_model):
     """
     return the llm model
     """
     chat = OCICommandR(
-        model="cohere.command-r-plus",
-        service_endpoint="https://ppe.inference.generativeai.us-chicago-1.oci.oraclecloud.com",
+        model=llm_model,
+        service_endpoint=ENDPOINT,
         compartment_id=COMPARTMENT_ID,
         max_tokens=MAX_TOKENS,
         is_streaming=False,
@@ -137,7 +138,11 @@ def get_retriever(add_reranker=False, selected_collection="ORACLE_KNOWLEDGE"):
 
 
 def hyde_rag(
-    query, add_reranker=False, lang="en", selected_collection="ORACLE_KNOWLEDGE"
+    query,
+    llm_model,
+    add_reranker=False,
+    lang="en",
+    selected_collection="ORACLE_KNOWLEDGE",
 ):
     """
     This method supports the implementation of hyde
@@ -147,7 +152,7 @@ def hyde_rag(
     # this doesn't change
     retriever = get_retriever(add_reranker, selected_collection)
 
-    chat = get_llm()
+    chat = get_llm(llm_model)
 
     # Hyde step1: ask to the llm to answer to the query
     # creating an hypothetical document
@@ -180,7 +185,11 @@ def hyde_rag(
 
 
 def classic_rag(
-    query, add_reranker=False, lang="en", selected_collection="ORACLE_KNOWLEDGE"
+    query,
+    llm_model,
+    add_reranker=False,
+    lang="en",
+    selected_collection="ORACLE_KNOWLEDGE",
 ):
     """
     Do the classic rag
@@ -190,7 +199,7 @@ def classic_rag(
     # this doesn't change
     retriever = get_retriever(add_reranker, selected_collection)
 
-    chat = get_llm()
+    chat = get_llm(llm_model)
 
     docs = retriever.invoke(query)
 

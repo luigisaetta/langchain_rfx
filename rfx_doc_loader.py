@@ -10,7 +10,7 @@ import pandas as pd
 import oracledb
 import streamlit as st
 
-from utils import get_console_logger
+from utils import get_console_logger, remove_path_from_ref
 from oraclevs_4_rfx import OracleVS4RFX
 from translations import translations
 from factory_rfx import get_embed_model
@@ -124,17 +124,35 @@ def load_uploaded_file_in_vector_store(v_uploaded_file, collection_name):
     return result_status
 
 
+def on_change_callback():
+    """
+    to handle on change on the collections' listbox
+    """
+    st.session_state.uploaded_books = []
+
+
 #
 # Main
 #
 # st.set_page_config(layout="wide")
-if "uploaded_files" not in st.session_state:
-    st.session_state.uploaded_files = []
+
+# init the first time for the session
+if "read_books_list" not in st.session_state:
+    # the list read from db
+    st.session_state.read_books_list = []
+if "uploaded_books" not in st.session_state:
+    st.session_state.uploaded_books = []
+if "last_book_loaded" not in st.session_state:
+    st.session_state.last_book_loaded = None
 
 
 st.title("Oracle 23AI Document Loader")
 
 col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown("### Documents in the collection")
+    placeholder_df = st.empty()
 
 is_debug = st.sidebar.checkbox("Debug")
 
@@ -147,11 +165,28 @@ oraclecs_collections_list = get_list_collections()
 shown_collections_list = oraclecs_collections_list + ["NEW"]
 
 selected_collection = st.sidebar.selectbox(
-    "Select documents collections", shown_collections_list
+    "Select documents collection", shown_collections_list, on_change=on_change_callback
 )
 
 if selected_collection == "NEW":
     selected_collection = st.sidebar.text_input("Insert the name of the new collection")
+    st.session_state.read_books_list = []
+else:
+    # show books in collection
+    list_books = get_books(selected_collection)
+
+    st.session_state.read_books_list = [
+        remove_path_from_ref(book) for book in list_books
+    ]
+
+    all_books = st.session_state.read_books_list + st.session_state.uploaded_books
+
+    # show list existing books
+    df_dict = {"Document name": all_books}
+    df = pd.DataFrame(df_dict)
+
+    with col1:
+        placeholder_df.dataframe(df, hide_index=True)
 
 # Caricamento del file
 uploaded_file = st.sidebar.file_uploader(
@@ -159,17 +194,25 @@ uploaded_file = st.sidebar.file_uploader(
 )
 
 if uploaded_file is not None:
-    logger.info("Loading file: %s", uploaded_file.name)
+    if uploaded_file.name != st.session_state.last_book_loaded:
+        logger.info("Loading file: %s", uploaded_file.name)
 
-    with st.spinner("Loading in progress.."):
-        status = load_uploaded_file_in_vector_store(uploaded_file, selected_collection)
+        with st.spinner("Loading in progress.."):
+            # TODO uncomment here
+            status = load_uploaded_file_in_vector_store(
+                uploaded_file, selected_collection
+            )
 
-    if status == "OK":
-        # add to the list
-        st.session_state.uploaded_files.append(uploaded_file.name)
+        if status == "OK":
+            # add to the list
+            st.session_state.uploaded_books.append(uploaded_file.name)
 
-    df_dict = {"Document name": st.session_state.uploaded_files}
-    df = pd.DataFrame(df_dict)
+        all_books = st.session_state.read_books_list + st.session_state.uploaded_books
 
-    with col1:
-        st.dataframe(df, hide_index=True)
+        df_dict = {"Document name": all_books}
+        df = pd.DataFrame(df_dict)
+
+        with col1:
+            placeholder_df.dataframe(df, hide_index=True)
+
+        st.session_state.last_book_loaded = uploaded_file.name

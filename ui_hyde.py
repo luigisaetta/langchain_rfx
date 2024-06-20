@@ -40,6 +40,19 @@ def translate(text, v_lang):
     return translations.get(v_lang, {}).get(text, text)
 
 
+def get_model_list():
+    """
+    return list of available llm
+    """
+
+    # aligned with official names
+    return [
+        "cohere.command-r-plus",
+        "cohere.command-r-16k",
+        "meta.llama-3-70b-instruct",
+    ]
+
+
 def get_db_connection():
     """
     get a connection to db
@@ -118,9 +131,9 @@ is_debug = st.sidebar.checkbox("Debug")
 lang = st.sidebar.selectbox("Select Language", ["en", "es", "fr", "it"])
 
 st.sidebar.header("RAG/LLM")
-llm_model = st.sidebar.selectbox(
-    translate("Select LLM", lang), ["Cohere-plus", "Llama3"]
-)
+
+model_list = get_model_list()
+llm_model = st.sidebar.selectbox(translate("Select LLM", lang), model_list)
 
 add_reranker = st.sidebar.checkbox("Add reranker")
 enable_hyde = st.sidebar.checkbox("Enable Hyde")
@@ -198,6 +211,7 @@ if uploaded_file is not None:
 
             response = hyde_rag(
                 question,
+                llm_model,
                 add_reranker=add_reranker,
                 lang=lang,
                 selected_collection=selected_collection,
@@ -205,6 +219,7 @@ if uploaded_file is not None:
         else:
             response = classic_rag(
                 question,
+                llm_model,
                 add_reranker=add_reranker,
                 lang=lang,
                 selected_collection=selected_collection,
@@ -219,7 +234,7 @@ if uploaded_file is not None:
             logger.info("")
 
             # only for Cohere
-            if ("Cohere" in llm_model) and enable_citations:
+            if ("cohere" in llm_model) and enable_citations:
                 citations = get_citations_from_response(response)
 
                 for citation in citations:
