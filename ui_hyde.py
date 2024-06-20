@@ -151,6 +151,9 @@ def process_file(file):
     return input_df
 
 
+#
+# Main
+#
 logger = get_console_logger()
 
 
@@ -280,9 +283,10 @@ if uploaded_file is not None:
 
                 assert len(doc_ids) == len(span_demarks)
 
+            # this add the doc_id enclosed in []
             answer = highlight_substrings(answer, span_demarks, doc_ids)
 
-            # adding docs
+            # adding docs list
             cited_docs = get_documents_from_response(response)
 
             answer += "\n\n"

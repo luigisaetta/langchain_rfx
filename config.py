@@ -58,15 +58,14 @@ MAX_MSGS_IN_CHAT = 2
 EMBEDDINGS_BITS = 32
 
 # Vector Store
-# VECTOR_STORE_TYPE = "FAISS"
-# VECTOR_STORE_TYPE = "OPENSEARCH"
-VECTOR_STORE_TYPE = "23AI"
+VECTOR_STORE_TYPE = "OPENSEARCH"
+# VECTOR_STORE_TYPE = "23AI"
 # VECTOR_STORE_TYPE = "QDRANT"
 
 # OPENSEARCH
 # using local as docker
 OPENSEARCH_URL = "https://localhost:9200"
-OPENSEARCH_INDEX_NAME = "test1"
+OPENSEARCH_INDEX_NAME = "med01"
 
 # QDRANT local
 QDRANT_URL = "http://localhost:6333"
@@ -74,11 +73,6 @@ QDRANT_URL = "http://localhost:6333"
 # 23AI
 # the name of the table with text and embeddings
 COLLECTION_NAME = "ORACLE_KNOWLEDGE"
-
-# parametri per leggere il database FAISS
-BOOKS_DIR = "./books"
-# la directory in cui il vector store è salvato
-FAISS_DIR = "./faiss_index"
 
 # COHERE, OCI
 LLM_MODEL_TYPE = "OCI"
