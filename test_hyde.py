@@ -40,7 +40,7 @@ logger = get_console_logger()
 
 # a look at the first five questions
 
-logger.info(f"There are {len(questions)} questions...")
+logger.info("There are %s questions...", len(questions))
 logger.info("")
 logger.info("Questions:")
 logger.info("")
@@ -53,8 +53,7 @@ logger.info("")
 
 answers = []
 for question in tqdm(questions):
-    answer = hyde_rag(question,
-                      llm_model="cohere.command-r-plus")
+    answer = hyde_rag(question, llm_model="cohere.command-r-plus")
 
     answers.append(answer)
 

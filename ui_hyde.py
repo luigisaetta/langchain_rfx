@@ -13,9 +13,11 @@ from factory_hyde import (
     get_citations_from_response,
 )
 from translations import translations
-from utils import get_console_logger
+from utils import get_console_logger, remove_path_from_ref
 from oraclevs_4_rfx import OracleVS4RFX
+from opensearch_4_rfx import OpenSearchRFX
 
+from config import VECTOR_STORE_TYPE
 from config_private import DB_USER, DB_PWD, DB_HOST_IP, DB_SERVICE
 
 # the name of the column with all the questions
@@ -64,26 +66,34 @@ def get_db_connection():
     return conn
 
 
-def get_list_collections():
+def get_list_collections(vector_store_type="23AI"):
     """
     return the list of available collections
     """
-    conn = get_db_connection()
+    if vector_store_type == "23AI":
+        conn = get_db_connection()
 
-    list_collections = OracleVS4RFX.list_collections(conn)
+        list_collections = OracleVS4RFX.list_collections(conn)
+    else:
+        # OpenSearch
+        list_collections = OpenSearchRFX.list_collections()
 
     return list_collections
 
 
-def get_books(collection_name):
+def get_books(collection_name, vector_store_type="23AI"):
     """
     return the list of books in collection
     """
-    conn = get_db_connection()
+    if vector_store_type == "23AI":
+        conn = get_db_connection()
 
-    list_books = OracleVS4RFX.list_books_in_collection(
-        connection=conn, collection_name=collection_name
-    )
+        list_books = OracleVS4RFX.list_books_in_collection(
+            connection=conn, collection_name=collection_name
+        )
+    else:
+        # OpenSearch
+        list_books = OpenSearchRFX.list_books(collection_name)
 
     return list_books
 
@@ -92,10 +102,11 @@ def show_books(the_collection):
     """
     show in the log the list of books in the collection
     """
-    list_books = get_books(the_collection)
+    list_books = get_books(the_collection, VECTOR_STORE_TYPE)
     logger.info("List of books:")
     for book in list_books:
-        logger.info("%s", book)
+        logger.info("%s", remove_path_from_ref(book))
+
     logger.info("")
 
 
@@ -136,11 +147,11 @@ model_list = get_model_list()
 llm_model = st.sidebar.selectbox(translate("Select LLM", lang), model_list)
 
 add_reranker = st.sidebar.checkbox("Add reranker")
-enable_hyde = st.sidebar.checkbox("Enable Hyde")
+enable_hyde = st.sidebar.checkbox("Enable HyDE")
 enable_citations = st.sidebar.checkbox("Enable citations")
 
 # Init list of collections
-oraclecs_collections_list = get_list_collections()
+oraclecs_collections_list = get_list_collections(VECTOR_STORE_TYPE)
 selected_collection = st.sidebar.selectbox(
     translate("Select documents collections", lang), oraclecs_collections_list
 )

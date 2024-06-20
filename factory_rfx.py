@@ -11,7 +11,7 @@ Python Version: 3.11
 import logging
 
 # Cohere
-from langchain_cohere import ChatCohere, CohereRerank
+from langchain_cohere import CohereRerank
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import LLMChainExtractor
 
@@ -67,6 +67,8 @@ def get_embed_model(model_type="OCI"):
     """
     check_value_in_list(model_type, ["OCI"])
 
+    embed_model = None
+
     if model_type == "OCI":
         embed_model = OCIGenAIEmbeddingsWithBatch(
             auth_type="API_KEY",
@@ -111,7 +113,7 @@ def get_llm(model_type):
 #
 # create the entire RAG chain
 #
-def build_rag_chain(local_index_dir, books_dir, verbose):
+def build_rag_chain(verbose):
     """
     Build the entire RAG chain
 
@@ -128,8 +130,6 @@ def build_rag_chain(local_index_dir, books_dir, verbose):
     v_store = get_vector_store(
         vector_store_type=VECTOR_STORE_TYPE,
         embed_model=embed_model,
-        local_index_dir=local_index_dir,
-        books_dir=books_dir,
     )
 
     # moved here for LLMChainExtractor

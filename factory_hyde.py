@@ -141,8 +141,6 @@ def get_retriever(add_reranker=False, selected_collection="ORACLE_KNOWLEDGE"):
         vector_store_type=VECTOR_STORE_TYPE,
         embed_model=embed_model,
         selected_collection=selected_collection,
-        local_index_dir=None,
-        books_dir=None,
     )
 
     base_retriever = v_store.as_retriever(k=TOP_K)

@@ -10,11 +10,9 @@ Usage:
 Python Version: 3.11
 """
 
-import os
 import logging
 import oracledb
 
-from langchain_community.vectorstores import FAISS
 from langchain_community.vectorstores import OpenSearchVectorSearch
 from langchain_community.vectorstores import Qdrant
 
@@ -26,7 +24,6 @@ from qdrant_client import QdrantClient
 
 from oraclevs_4_rfx import OracleVS4RFX
 from utils import check_value_in_list
-from chunk_index_utils import load_and_rebuild_faiss_index
 
 from config import (
     COLLECTION_NAME,
@@ -48,34 +45,18 @@ def get_vector_store(
     vector_store_type,
     embed_model,
     selected_collection,
-    local_index_dir=None,
-    books_dir=None,
 ):
     """
     local_index_dir, books_dir only needed for FAISS
-    Faiss: Read or rebuild the index and retur a Vector Store
     """
 
-    check_value_in_list(vector_store_type, ["FAISS", "OPENSEARCH", "23AI", "QDRANT"])
+    check_value_in_list(vector_store_type, ["OPENSEARCH", "23AI", "QDRANT"])
 
     logger = logging.getLogger("ConsoleLogger")
 
     v_store = None
 
-    if vector_store_type == "FAISS":
-        if os.path.exists(local_index_dir):
-            logger.info("Loading Vector Store from local dir %s...", local_index_dir)
-
-            v_store = FAISS.load_local(
-                local_index_dir, embed_model, allow_dangerous_deserialization=True
-            )
-            logger.info("Loaded %s chunks of text !!!", v_store.index.ntotal)
-        else:
-            v_store = load_and_rebuild_faiss_index(
-                local_index_dir, books_dir, embed_model
-            )
-
-    elif vector_store_type == "OPENSEARCH":
+    if vector_store_type == "OPENSEARCH":
         # this assumes that there is an OpenSearch cluster available
         # or docker, at the specified URL
         v_store = OpenSearchVectorSearch(
