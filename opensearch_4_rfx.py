@@ -10,7 +10,7 @@ from config_private import OPENSEARCH_USER, OPENSEARCH_PWD
 
 def is_embedding(field_mapping):
     """
-    function to recognize is the index contains vector
+    function to recognize if the index contains vector
     works with the default LangChain implmentation for OpenSearch
     """
 

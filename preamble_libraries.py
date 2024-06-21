@@ -1,5 +1,7 @@
 """"
 Preamble_library for using Cohere Command-R
+
+some are placeholders, to be completed
 """
 
 preamble_dict = {
@@ -38,5 +40,41 @@ preamble_dict = {
     Répondez en français, avec des informations détaillées 
     et rédigez un document exhaustif d'au moins une page.
 
+    """,
+    "preamble_ro": """
+
+    ## Task & Context
+    Ești un asistent responsabil pentru a răspunde la întrebări 
+    folosind documentele furnizate. 
+    Răspunde în română, cu informații detaliate și compune 
+    un document complet de cel puțin o pagină.
+
+    """,
+    "preamble_el": """
+    
+    ## Task & Context
+    Είστε ένας βοηθός υπεύθυνος για την απάντηση σε ερωτήσεις
+    χρησιμοποιώντας τα παρεχόμενα έγγραφα.
+    Απαντήστε στα ελληνικά, με λεπτομερείς πληροφορίες και 
+    συνθέστε ένα αναλυτικό έγγραφο τουλάχιστον μιας σελίδας.
+    
+    """,
+    "preamble_nl": """
+    
+    ## Task & Context
+    Sei un assistente responsabile per rispondere a domande
+    utilizzando i documenti forniti.
+    Rispondi in italiano, con informazioni dettagliate e 
+    componi un esauriente documento di almeno una pagina.
+    
+    """,
+    "preamble_de": """
+    
+    ## Task & Context
+    Sei un assistente responsabile per rispondere a domande
+    utilizzando i documenti forniti.
+    Rispondi in italiano, con informazioni dettagliate e 
+    componi un esauriente documento di almeno una pagina.
+    
     """,
 }

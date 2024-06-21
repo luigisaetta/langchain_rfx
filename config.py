@@ -5,15 +5,14 @@ Date last modified: 2024-04-27
 Python Version: 3.11
 """
 
-# per ora usiamo il tokenizer di Cohere...
-TOKENIZER = "Cohere/Cohere-embed-multilingual-v3.0"
-
 # title for the UI
 TITLE = "AI Assistant with LangChain 🦜"
 HELLO_MSG = "Ciao, come posso aiutarti?"
 
 ADD_REFERENCES = True
 VERBOSE = False
+
+LANG_SUPPORTED = ["de", "el", "en", "es", "fr", "it", "nl", "ro"]
 
 # enable tracing with LangSmith
 ENABLE_TRACING = False
@@ -22,6 +21,9 @@ ENABLE_TRACING = False
 # in chars
 CHUNK_SIZE = 1500
 CHUNK_OVERLAP = 50
+
+# per ora usiamo il tokenizer di Cohere...
+TOKENIZER = "Cohere/Cohere-embed-multilingual-v3.0"
 
 # OCI GenAI model used for Embeddings
 # to batch embedding with OCI

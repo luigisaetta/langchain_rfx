@@ -136,11 +136,11 @@ def get_llm(llm_model):
 #
 # This has been modified to support selection over
 # multiple collections
-# for now only O23AI
 #
 def get_retriever(add_reranker=False, selected_collection="ORACLE_KNOWLEDGE"):
     """
     selected_collection: the name of the Oracle table in OracleVS
+    or index in OpenSearch
     """
     embed_model = get_embed_model(EMBED_MODEL_TYPE)
 

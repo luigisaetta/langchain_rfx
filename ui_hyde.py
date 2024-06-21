@@ -18,7 +18,7 @@ from utils import get_console_logger, remove_path_from_ref
 from oraclevs_4_rfx import OracleVS4RFX
 from opensearch_4_rfx import OpenSearchRFX
 
-from config import VECTOR_STORE_TYPE
+from config import VECTOR_STORE_TYPE, LANG_SUPPORTED
 from config_private import DB_USER, DB_PWD, DB_HOST_IP, DB_SERVICE
 
 # the name of the column with all the questions
@@ -136,8 +136,42 @@ def highlight_substrings(text, delimiters, doc_ids_list):
     return text
 
 
+def add_citations_to_answer(orig_answer, v_response):
+    """
+    for Cohere models add citations to the llm answer
+
+    v_response: the complete response from the llm (including citations)
+    """
+    citations = get_citations_from_response(v_response)
+
+    span_demarks = []
+    doc_ids = []
+
+    for citation in citations:
+        span_demarks.append(citation["interval"])
+
+        docs_for_this_citation = []
+        for doc in citation["documents"]:
+            docs_for_this_citation.append(doc["id"])
+        doc_ids.append(docs_for_this_citation)
+
+        assert len(doc_ids) == len(span_demarks)
+
+    # this add the doc_id enclosed in []
+    new_answer = highlight_substrings(orig_answer, span_demarks, doc_ids)
+
+    # adding docs list
+    cited_docs = get_documents_from_response(v_response)
+
+    new_answer += "\n\n"
+    for cited_doc in cited_docs:
+        new_answer += str(cited_doc) + "\n"
+
+    return new_answer
+
+
 # Funzione per processare il file XLS
-def process_file(file):
+def read_input_file(file):
     """
     read a file and return a df
     """
@@ -149,6 +183,22 @@ def process_file(file):
     input_df = input_df[:LIMITS]
 
     return input_df
+
+
+def create_output_file(all_questions, all_answers, input_file_name):
+    """
+    Save all the results in an xls file
+    """
+    out_dict = {"Questions": all_questions, "Answers": all_answers}
+    out_df = pd.DataFrame(out_dict)
+
+    # take what preceed .xls
+    only_name = input_file_name.split(".")[0]
+    new_name = only_name + "_out.xlsx"
+
+    out_df.to_excel(new_name, index=None)
+
+    return new_name
 
 
 #
@@ -168,21 +218,21 @@ if st.sidebar.button("Reset"):
 
 is_debug = st.sidebar.checkbox("Debug")
 
-lang = st.sidebar.selectbox("Select Language", ["en", "es", "fr", "it"])
+lang = st.sidebar.selectbox("Select Language", LANG_SUPPORTED)
 
 st.sidebar.header("RAG/LLM")
 
 model_list = get_model_list()
 llm_model = st.sidebar.selectbox(translate("Select LLM", lang), model_list)
 
-add_reranker = st.sidebar.checkbox("Add reranker")
-enable_hyde = st.sidebar.checkbox("Enable HyDE")
-enable_citations = st.sidebar.checkbox("Enable citations")
+add_reranker = st.sidebar.checkbox(translate("Add reranker", lang))
+enable_hyde = st.sidebar.checkbox(translate("Enable HyDE", lang))
+enable_citations = st.sidebar.checkbox(translate("Enable citations", lang))
 
 # Init list of collections
 oraclecs_collections_list = get_list_collections(VECTOR_STORE_TYPE)
 selected_collection = st.sidebar.selectbox(
-    translate("Select documents collections", lang), oraclecs_collections_list
+    translate("Select documents collection", lang), oraclecs_collections_list
 )
 st.sidebar.markdown("----------")
 
@@ -204,7 +254,7 @@ if uploaded_file is not None:
         logger.info("")
 
     # Carica il file e mostra il contenuto
-    df = process_file(uploaded_file)
+    df = read_input_file(uploaded_file)
 
     # init the dataframe with no green tick
     df["Processed"] = df.index.map(
@@ -217,7 +267,7 @@ if uploaded_file is not None:
     # to update the dataframe in place
 
     with col1:
-        st.header("Questions:")
+        st.header(translate("Questions:", lang))
 
         dataframe_placeholder = st.empty()
 
@@ -229,7 +279,7 @@ if uploaded_file is not None:
         info_placeholder.info(translate("Processing started!", lang))
 
     with col2:
-        st.header("Results:")
+        st.header(translate("Answers:", lang))
 
     answers = []
 
@@ -240,7 +290,9 @@ if uploaded_file is not None:
     if is_debug:
         show_books(selected_collection)
 
+    #
     # loop to process all questions
+    #
     for i, question in enumerate(questions):
 
         logger.info("Processing: %s ...", question)
@@ -268,40 +320,11 @@ if uploaded_file is not None:
         if ("cohere" in llm_model) and enable_citations:
             # handle citations
             # modify answer to add citations
-            citations = get_citations_from_response(response)
-
-            span_demarks = []
-            doc_ids = []
-
-            for citation in citations:
-                span_demarks.append(citation["interval"])
-
-                docs_for_this_citation = []
-                for doc in citation["documents"]:
-                    docs_for_this_citation.append(doc["id"])
-                doc_ids.append(docs_for_this_citation)
-
-                assert len(doc_ids) == len(span_demarks)
-
-            # this add the doc_id enclosed in []
-            answer = highlight_substrings(answer, span_demarks, doc_ids)
-
-            # adding docs list
-            cited_docs = get_documents_from_response(response)
-
-            answer += "\n\n"
-            for cited_doc in cited_docs:
-                answer += str(cited_doc) + "\n"
+            answer = add_citations_to_answer(answer, response)
 
         if is_debug:
             logger.info("Answer: %s", answer)
             logger.info("")
-
-            # only for Cohere
-            if ("cohere" in llm_model) and enable_citations:
-                for citation in citations:
-                    logger.info("Citation: %s", citation)
-                logger.info("")
 
         # add here, because it has been eventually modified for citations
         answers.append(answer)
@@ -321,13 +344,15 @@ if uploaded_file is not None:
     with col1:
         info_placeholder.success(translate("Processing completed!", lang))
 
-    # handle output
+    # when all questions have been processed, handle output
     dict_out = {"Answers": answers}
-
     df_out = pd.DataFrame(dict_out)
 
     with col2:
         st.dataframe(df_out)
+
+    # save output file
+    create_output_file(questions, answers, uploaded_file.name)
 
 else:
     st.write(translate("Load the xls file with the questions.", lang))
