@@ -62,11 +62,11 @@ def get_books(collection_name):
     """
     conn = get_db_connection()
 
-    list_books = OracleVS4RFX.list_books_in_collection(
+    list_books_in_collection = OracleVS4RFX.list_books_in_collection(
         connection=conn, collection_name=collection_name
     )
 
-    return list_books
+    return list_books_in_collection
 
 
 def write_temporary_file(v_tmp_dir_name, v_uploaded_file):
@@ -198,12 +198,11 @@ if uploaded_file is not None:
         logger.info("Loading file: %s", uploaded_file.name)
 
         with st.spinner("Loading in progress.."):
-            # TODO uncomment here
-            status = load_uploaded_file_in_vector_store(
+            STATUS = load_uploaded_file_in_vector_store(
                 uploaded_file, selected_collection
             )
 
-        if status == "OK":
+        if STATUS == "OK":
             # add to the list
             st.session_state.uploaded_books.append(uploaded_file.name)
 
