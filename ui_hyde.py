@@ -6,7 +6,7 @@ import oracledb
 import streamlit as st
 import pandas as pd
 
-from factory_hyde import (
+from factory_rfx import (
     hyde_rag,
     classic_rag,
     get_text_from_response,

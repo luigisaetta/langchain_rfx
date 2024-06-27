@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
-from factory_hyde import hyde_rag
+from factory_rfx import hyde_rag
 from utils import get_console_logger
 from pdf_utils import PDF
 

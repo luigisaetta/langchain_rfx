@@ -1,64 +1,63 @@
 """
-Author: Luigi Saetta
-Date created: 2024-04-27
-Date last modified: 2024-05-26
-
-Usage:
-    forked and modified for rfx prototype
-Python Version: 3.11
+Factory methods implementation based on OCI Cohere
+* supports classi RAG, HyDE
 """
 
-import logging
-
-# Cohere
 from langchain_cohere import CohereRerank
 from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import LLMChainExtractor
 
-# to handle conversational memory
-from langchain.chains import create_history_aware_retriever
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
-
-# Added LLMLingua
-from langchain_community.document_compressors import LLMLinguaCompressor
-
-from factory_vector_store import get_vector_store
 from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
-from oci_llama3_oo_lc import OCILlama3
-from oci_command_r_oo_lc import OCICommandR
+from oci_command_r_oo import OCICommandR
+from factory_vector_store import get_vector_store
+from oci_citations_utils import extract_complete_citations, extract_document_list
+from utils import get_console_logger, check_value_in_list
 
-# prompts
-from oracle_chat_prompts import CONTEXT_Q_PROMPT, QA_PROMPT
-
-from utils import print_configuration, check_value_in_list
+from preamble_libraries import preamble_dict
 
 from config import (
     EMBED_MODEL_TYPE,
     OCI_EMBED_MODEL,
-    ENDPOINT,
     VECTOR_STORE_TYPE,
-    OCI_GENAI_MODEL,
+    ENDPOINT,
     TEMPERATURE,
+    COHERE_RERANKER_MODEL,
     MAX_TOKENS,
     TOP_K,
     TOP_N,
-    ADD_RERANKER,
-    ADD_LLMLINGUA,
-    ADD_LLM_CHAIN_EXTRACTOR,
-    COHERE_RERANKER_MODEL,
-    LLM_MODEL_TYPE,
 )
-
-from config_private import (
-    COMPARTMENT_ID,
-    COHERE_API_KEY,
-)
+from config_private import COMPARTMENT_ID, COHERE_API_KEY
 
 
-#
-# functions
-#
+def compute_total_chars(preamble, question, documents, response):
+    """
+    compute the total n. of chars exchanged with llm
+    """
+    tot_chars = len(preamble) + len(question) + len(get_text_from_response(response))
+
+    for doc in documents:
+        tot_chars += len(doc)
+
+    return tot_chars
+
+
+def format_docs_for_cohere(l_docs):
+    """ "
+    format documents in the format expected by Cohere command-r/plus
+    l_docs: list of Document
+    """
+
+    # Cohere wants a map
+    documents_txt = [
+        {
+            "id": str(i + 1),
+            "snippet": doc.page_content,
+            "source": doc.metadata["source"],
+            "page": str(doc.metadata["page"]),
+        }
+        for i, doc in enumerate(l_docs)
+    ]
+
+    return documents_txt
 
 
 def get_embed_model(model_type="OCI"):
@@ -80,69 +79,81 @@ def get_embed_model(model_type="OCI"):
     return embed_model
 
 
-def get_llm(model_type):
+def get_task_step1(query):
     """
-    Build and return the LLM client
+    Create the query for an Hyde doc
     """
-    check_value_in_list(model_type, ["OCI", "OCI", "COHERE"])
 
-    llm = None
+    task = f"""
+    Given a question, write a documentation passage to answer the question
+    Question: {query}
+    Passage:
+    """
 
-    if model_type == "OCI":
-        # added support for LLama3
-        if OCI_GENAI_MODEL.startswith("meta.llama-3"):
-            llm = OCILlama3(
-                model=OCI_GENAI_MODEL,
-                service_endpoint=ENDPOINT,
-                compartment_id=COMPARTMENT_ID,
-                max_tokens=MAX_TOKENS,
-                temperature=TEMPERATURE,
-            )
-        else:
-            # command-r
-            llm = OCICommandR(
-                model=OCI_GENAI_MODEL,
-                service_endpoint=ENDPOINT,
-                compartment_id=COMPARTMENT_ID,
-                max_tokens=MAX_TOKENS,
-                temperature=TEMPERATURE,
-            )
-    return llm
+    return task
+
+
+def get_text_from_response(response):
+    """
+    extract text from OCI response
+    """
+    return response.data.chat_response.text
+
+
+def get_citations_from_response(response):
+    """
+    Extract from the response the citations
+    only to be used with Cohere
+    """
+    citations = extract_complete_citations(response)
+
+    return citations
+
+
+def get_documents_from_response(response):
+    """
+    get the documents for citations
+    """
+    return extract_document_list(response)
+
+
+def get_llm(llm_model):
+    """
+    return the llm model
+
+    for now supports command-r and command-r-plus
+    """
+    chat = OCICommandR(
+        model=llm_model,
+        service_endpoint=ENDPOINT,
+        compartment_id=COMPARTMENT_ID,
+        max_tokens=MAX_TOKENS,
+        temperature=TEMPERATURE,
+        is_streaming=False,
+    )
+    return chat
 
 
 #
-# create the entire RAG chain
+# This has been modified to support selection over
+# multiple collections
 #
-def build_rag_chain(verbose):
+def get_retriever(add_reranker=False, selected_collection="ORACLE_KNOWLEDGE"):
     """
-    Build the entire RAG chain
-
-    index_dir: the directory where the local index is stored
-    books_dir: the directory where all pdf to load and chunk are stored
+    selected_collection: the name of the Oracle table in OracleVS
+    or index in OpenSearch
     """
-    logger = logging.getLogger("ConsoleLogger")
-
-    # print all the used configuration to the console
-    print_configuration()
-
     embed_model = get_embed_model(EMBED_MODEL_TYPE)
 
     v_store = get_vector_store(
         vector_store_type=VECTOR_STORE_TYPE,
         embed_model=embed_model,
+        selected_collection=selected_collection,
     )
 
-    # moved here for LLMChainExtractor
-    llm = get_llm(model_type=LLM_MODEL_TYPE)
-
-    # 10/05: I can add a filter here (for ex: to filter by profile_id)
     base_retriever = v_store.as_retriever(k=TOP_K)
 
-    # add the reranker
-    if ADD_RERANKER:
-        if verbose:
-            logger.info("Adding a reranker...")
-
+    if add_reranker:
         compressor = CohereRerank(
             cohere_api_key=COHERE_API_KEY, top_n=TOP_N, model=COHERE_RERANKER_MODEL
         )
@@ -150,49 +161,89 @@ def build_rag_chain(verbose):
         retriever = ContextualCompressionRetriever(
             base_compressor=compressor, base_retriever=base_retriever
         )
-    elif ADD_LLMLINGUA:
-        assert ADD_RERANKER is False
-
-        if verbose:
-            logger.info("Adding LLMlingua...")
-
-        # LLMLingua... works even on Mac (mps)
-        # not yet possible to use LLmlingua2
-        # default is Llama2
-        compressor = LLMLinguaCompressor(
-            model_name="openai-community/gpt2", target_token=512, device_map="cpu"
-        )
-
-        retriever = ContextualCompressionRetriever(
-            base_compressor=compressor, base_retriever=base_retriever
-        )
-    elif ADD_LLM_CHAIN_EXTRACTOR:
-        # can be much slower since it dos a LLM query for each doc
-        if verbose:
-            logger.info("Adding LLMChainExtractor...")
-
-        compressor = LLMChainExtractor.from_llm(llm)
-
-        retriever = ContextualCompressionRetriever(
-            base_compressor=compressor, base_retriever=base_retriever
-        )
     else:
-        # no reranker
         retriever = base_retriever
 
-    # steps to add chat_history
-    # 1. create a retriever using chat history
-    history_aware_retriever = create_history_aware_retriever(
-        llm, retriever, CONTEXT_Q_PROMPT
+    return retriever
+
+
+def hyde_rag(
+    query,
+    llm_model,
+    add_reranker=False,
+    lang="en",
+    selected_collection="ORACLE_KNOWLEDGE",
+):
+    """
+    This method supports the implementation of hyde
+    see: https://arxiv.org/abs/2212.10496
+    """
+
+    # this doesn't change
+    retriever = get_retriever(add_reranker, selected_collection)
+
+    chat = get_llm(llm_model)
+
+    # Hyde step1: ask to the llm to answer to the query
+    # creating an hypothetical document
+
+    # formulate the task
+    task = get_task_step1(query)
+
+    # resetting preamble
+    chat.preamble_override = None
+
+    # get the hyde doc
+    response1 = chat.invoke(query=task, chat_history=[], documents=[])
+
+    # this is the hypotethical doc produced by step1
+    hyde_doc = get_text_from_response(response1)
+
+    # step 2
+    # do the semantic search searching for docs similar to hyde_doc
+    docs = retriever.invoke(hyde_doc)
+
+    documents_txt = format_docs_for_cohere(docs)
+
+    # print("Step 2...")
+    # choose the preamble based on target language
+    chat.preamble_override = preamble_dict[f"preamble_{lang}"]
+
+    response2 = chat.invoke(query=query, chat_history=[], documents=documents_txt)
+
+    return response2
+
+
+def classic_rag(
+    query,
+    llm_model,
+    add_reranker=False,
+    lang="en",
+    selected_collection="ORACLE_KNOWLEDGE",
+):
+    """
+    Do the classic rag
+    """
+    logger = get_console_logger()
+
+    # this doesn't change
+    retriever = get_retriever(add_reranker, selected_collection)
+
+    chat = get_llm(llm_model)
+
+    docs = retriever.invoke(query)
+
+    documents_txt = format_docs_for_cohere(docs)
+
+    chat.preamble_override = preamble_dict[f"preamble_{lang}"]
+
+    response = chat.invoke(query=query, chat_history=[], documents=documents_txt)
+
+    tot_chars = compute_total_chars(
+        preamble_dict[f"preamble_{lang}"], query, documents_txt, response
     )
 
-    # 2. create the chain for answering
-    # we need to use a different prompt from the one used to
-    # condense the standalone question
-    question_answer_chain = create_stuff_documents_chain(llm, QA_PROMPT)
+    logger.info("Total characters to/from LLM: %s", tot_chars)
+    logger.info("")
 
-    # 3, the entire chain
-    rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
-
-    # this returns sources and can be streamed
-    return rag_chain
+    return response
