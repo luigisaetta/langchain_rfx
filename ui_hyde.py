@@ -50,8 +50,8 @@ def get_model_list():
 
     # aligned with official names
     return [
-        "cohere.command-r-plus",
         "cohere.command-r-16k",
+        "cohere.command-r-plus",
         "meta.llama-3-70b-instruct",
     ]
 

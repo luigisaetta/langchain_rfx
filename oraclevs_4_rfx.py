@@ -2,9 +2,16 @@
 Extensions to Oracle VS
 """
 
+import os
 from oracledb import Connection
 
 from langchain_community.vectorstores.oraclevs import OracleVS
+
+from utils import get_console_logger, debug_bool
+
+logger = get_console_logger()
+
+VERBOSE = debug_bool(os.environ.get("DEBUG", "False"))
 
 
 class OracleVS4RFX(OracleVS):
@@ -59,3 +66,28 @@ class OracleVS4RFX(OracleVS):
                 list_books.append(row[0])
 
         return list_books
+
+    @classmethod
+    def delete_documents(
+        cls, connection: Connection, collection_name: str, doc_names: list
+    ):
+        """
+        doc_names: list of names of docs to drop
+        """
+        for doc_name in doc_names:
+            sql = f"""
+                  DELETE FROM {collection_name}
+                  WHERE json_value(METADATA, '$.source') = '{doc_name}'
+                  """
+
+            if VERBOSE:
+                logger.info("Drop %s", doc_name)
+                logger.info(sql)
+
+            cur = connection.cursor()
+
+            cur.execute(sql)
+
+            cur.close()
+
+        connection.commit()

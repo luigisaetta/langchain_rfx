@@ -25,6 +25,15 @@ from config import (
 from config_private import LANGSMITH_API_KEY
 
 
+def debug_bool(b_str):
+    """
+    to convert the env value to bool
+    """
+    if b_str == "True":
+        return True
+    return False
+
+
 def remove_path_from_ref(ref_pathname):
     """
     remove the path from source (ref)

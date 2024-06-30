@@ -12,7 +12,6 @@ from tqdm.auto import tqdm
 import oracledb
 
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import FAISS
 from langchain_community.vectorstores import OpenSearchVectorSearch
 from langchain_community.vectorstores.oraclevs import OracleVS
 from langchain_community.vectorstores.utils import DistanceStrategy
@@ -25,6 +24,7 @@ from config import (
     OPENSEARCH_URL,
     OPENSEARCH_INDEX_NAME,
 )
+
 from config_private import (
     OPENSEARCH_USER,
     OPENSEARCH_PWD,
@@ -152,24 +152,6 @@ def add_docs_to_opensearch(docs, embed_model):
     logger.info("Saved new documents to Vector Store !")
 
 
-def add_docs_to_faiss(docs, faiss_dir, embed_model):
-    """
-    add docs from a book to faiss index
-    """
-    logger = get_console_logger()
-
-    logger.info("Loading Vector Store from local dir %s...", faiss_dir)
-
-    v_store = FAISS.load_local(
-        faiss_dir, embed_model, allow_dangerous_deserialization=True
-    )
-
-    v_store.add_documents(docs)
-
-    logger.info("Saving Vector Store...")
-    v_store.save_local(faiss_dir)
-
-
 def load_books_and_split(books_dir) -> list:
     """
     load a set of books from books_dir and split in chunks
@@ -196,24 +178,3 @@ def load_books_and_split(books_dir) -> list:
     logger.info("Loaded %s chunks of text...", len(docs))
 
     return docs
-
-
-def load_and_rebuild_faiss_index(faiss_dir, books_dir, embed_model):
-    """
-    load all the books and rebuild the faiss index
-    """
-
-    logger = get_console_logger()
-
-    logger.info("local_dir is: %s ...", faiss_dir)
-
-    docs = load_books_and_split(books_dir)
-
-    logger.info("Embedding chunks...")
-
-    v_store = FAISS.from_documents(docs, embed_model)
-
-    logger.info("Saving Vector Store...")
-    v_store.save_local(faiss_dir)
-
-    return v_store
