@@ -10,17 +10,17 @@ TITLE = "AI Assistant with LangChain 🦜"
 HELLO_MSG = "Ciao, come posso aiutarti?"
 
 ADD_REFERENCES = True
-VERBOSE = False
+VERBOSE = True
 
-LANG_SUPPORTED = ["de", "el", "en", "es", "fr", "it", "nl", "ro"]
+LANG_SUPPORTED = ["en", "it", "es", "fr", "de", "el", "nl", "ro"]
 
 # enable tracing with LangSmith
 ENABLE_TRACING = False
 
 # for chunking
 # in chars
-CHUNK_SIZE = 1500
-CHUNK_OVERLAP = 50
+CHUNK_SIZE = 2000
+CHUNK_OVERLAP = 200
 
 # per ora usiamo il tokenizer di Cohere...
 TOKENIZER = "Cohere/Cohere-embed-multilingual-v3.0"
@@ -74,7 +74,7 @@ QDRANT_URL = "http://localhost:6333"
 
 # 23AI
 # the name of the table with text and embeddings
-COLLECTION_NAME = "ORACLE_KNOWLEDGE"
+COLLECTION_NAME = "MY_BOOKS"
 
 # COHERE, OCI
 LLM_MODEL_TYPE = "OCI"

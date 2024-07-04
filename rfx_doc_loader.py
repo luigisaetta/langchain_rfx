@@ -34,7 +34,8 @@ def get_df_of_books(selected_collection):
     """
     create the dataframe with list of books
     """
-    logger.info("Collection is: %s...", selected_collection)
+    if is_debug:
+        logger.info("Collection is: %s...", selected_collection)
 
     list_books = get_books(selected_collection)
 
@@ -91,6 +92,7 @@ sel_rows = None
 
 with col1:
     # for the list of books in the collection
+    # ph: placeholde, to keep the position of the element
     ph_title1 = st.empty()
     ph_df1 = st.empty()
     ph_butt1 = st.empty()
@@ -148,7 +150,8 @@ if st.session_state.uploaded_file is not None:
     # remove path before loading
     new_file_name = remove_path_from_ref(st.session_state.uploaded_file.name)
 
-    logger.info("Selected collection: %s...", collection_name)
+    if is_debug:
+        logger.info("Selected collection: %s...", collection_name)
 
     if (st.session_state.checkbox_new_collection) or (
         new_file_name not in get_books(collection_name)
@@ -177,14 +180,13 @@ if st.session_state.uploaded_file is not None:
                 "Error: file %s not loaded...", st.session_state.uploaded_file.name
             )
     else:
-        logger.info("File: %s already loaded", st.session_state.uploaded_file.name)
+        if is_debug:
+            logger.info("File: %s already loaded", st.session_state.uploaded_file.name)
         st.info("File already loaded !")
 
 # handle deletion
 if ph_butt1.button("Drop selected docs.."):
     if len(sel_rows) > 0:
-        print("dropped:")
-        print(sel_rows)
 
         delete_documents_in_collection(
             st.session_state.selected_collection, sel_rows[DOC_NAME_COL].values

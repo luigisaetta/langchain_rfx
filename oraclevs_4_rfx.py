@@ -77,7 +77,7 @@ class OracleVS4RFX(OracleVS):
         for doc_name in doc_names:
             sql = f"""
                   DELETE FROM {collection_name}
-                  WHERE json_value(METADATA, '$.source') = '{doc_name}'
+                  WHERE json_value(METADATA, '$.source') = :doc
                   """
 
             if VERBOSE:
@@ -86,7 +86,7 @@ class OracleVS4RFX(OracleVS):
 
             cur = connection.cursor()
 
-            cur.execute(sql)
+            cur.execute(sql, [doc_name])
 
             cur.close()
 

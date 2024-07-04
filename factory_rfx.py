@@ -5,6 +5,8 @@ Factory methods implementation based on OCI Cohere
 
 from langchain_cohere import CohereRerank
 from langchain.retrievers import ContextualCompressionRetriever
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 
 from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
 from oci_command_r_oo import OCICommandR
@@ -24,8 +26,11 @@ from config import (
     MAX_TOKENS,
     TOP_K,
     TOP_N,
+    VERBOSE,
 )
 from config_private import COMPARTMENT_ID, COHERE_API_KEY
+
+logger = get_console_logger()
 
 
 def compute_total_chars(preamble, question, documents, response):
@@ -123,14 +128,27 @@ def get_llm(llm_model):
 
     for now supports command-r and command-r-plus
     """
-    chat = OCICommandR(
-        model=llm_model,
-        service_endpoint=ENDPOINT,
-        compartment_id=COMPARTMENT_ID,
-        max_tokens=MAX_TOKENS,
-        temperature=TEMPERATURE,
-        is_streaming=False,
-    )
+    chat = None
+
+    if llm_model.startswith("cohere"):
+        # Command R/R-plus
+        chat = OCICommandR(
+            model=llm_model,
+            service_endpoint=ENDPOINT,
+            compartment_id=COMPARTMENT_ID,
+            max_tokens=MAX_TOKENS,
+            temperature=TEMPERATURE,
+            is_streaming=False,
+        )
+    elif llm_model.startswith("meta"):
+        # Llama3
+        chat = ChatOCIGenAI(
+            model_id=llm_model,
+            service_endpoint=ENDPOINT,
+            compartment_id=COMPARTMENT_ID,
+            is_stream=False,
+            model_kwargs={"temperature": TEMPERATURE, "max_tokens": MAX_TOKENS},
+        )
     return chat
 
 
@@ -207,6 +225,9 @@ def hyde_rag(
 
     # print("Step 2...")
     # choose the preamble based on target language
+    if VERBOSE:
+        logger.info("Lang: %s", lang)
+
     chat.preamble_override = preamble_dict[f"preamble_{lang}"]
 
     response2 = chat.invoke(query=query, chat_history=[], documents=documents_txt)
@@ -229,21 +250,29 @@ def classic_rag(
     # this doesn't change
     retriever = get_retriever(add_reranker, selected_collection)
 
-    chat = get_llm(llm_model)
-
     docs = retriever.invoke(query)
 
-    documents_txt = format_docs_for_cohere(docs)
+    chat = get_llm(llm_model)
 
-    chat.preamble_override = preamble_dict[f"preamble_{lang}"]
+    if llm_model.startswith("cohere"):
+        # using Cohere native interface for citations
 
-    response = chat.invoke(query=query, chat_history=[], documents=documents_txt)
+        documents_txt = format_docs_for_cohere(docs)
 
-    tot_chars = compute_total_chars(
-        preamble_dict[f"preamble_{lang}"], query, documents_txt, response
-    )
+        chat.preamble_override = preamble_dict[f"preamble_{lang}"]
 
-    logger.info("Total characters to/from LLM: %s", tot_chars)
-    logger.info("")
+        response = chat.invoke(query=query, chat_history=[], documents=documents_txt)
+
+        tot_chars = compute_total_chars(
+            preamble_dict[f"preamble_{lang}"], query, documents_txt, response
+        )
+
+        logger.info("Total characters to/from LLM: %s", tot_chars)
+        logger.info("")
+    else:
+        # meta
+        sysMsg = SystemMessage(content=preamble_dict[f"preamble_{lang}"])
+
+        raise NotImplementedError("LlamaIndex support non yet implemented.")
 
     return response
