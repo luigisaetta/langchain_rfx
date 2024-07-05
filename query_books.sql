@@ -1,0 +1,6 @@
+SELECT distinct json_value(METADATA, '$.source') AS books
+FROM ORACLE_KNOWLEDGE
+order by books asc;
+
+SELECT METADATA from ORACLE_KNOWLEDGE
+FETCH FIRST 10 ROWS ONLY;

@@ -225,7 +225,9 @@ llm_model = st.sidebar.selectbox(translate("Select LLM", lang), model_list)
 
 add_reranker = st.sidebar.checkbox(translate("Add reranker", lang))
 enable_hyde = st.sidebar.checkbox(translate("Enable HyDE", lang))
-enable_citations = st.sidebar.checkbox(translate("Enable citations", lang))
+
+if llm_model.startswith("cohere"):
+    enable_citations = st.sidebar.checkbox(translate("Enable citations", lang))
 
 # Init list of collections
 oraclecs_collections_list = get_list_collections(VECTOR_STORE_TYPE)
@@ -313,7 +315,9 @@ if uploaded_file is not None:
                 selected_collection=selected_collection,
             )
 
-        answer = get_text_from_response(response)
+        # we pass the name of the model because, in current implementation
+        # response has a different structure
+        answer = get_text_from_response(response, llm_model)
 
         if ("cohere" in llm_model) and enable_citations:
             # handle citations

@@ -16,6 +16,7 @@ from rfx_doc_loader_backend import (
 )
 
 from utils import get_console_logger, remove_path_from_ref
+from config import VERBOSE
 
 # configs
 DOC_NAME_COL = "Document name"
@@ -34,7 +35,7 @@ def get_df_of_books(selected_collection):
     """
     create the dataframe with list of books
     """
-    if is_debug:
+    if VERBOSE:
         logger.info("Collection is: %s...", selected_collection)
 
     list_books = get_books(selected_collection)
@@ -97,11 +98,6 @@ with col1:
     ph_df1 = st.empty()
     ph_butt1 = st.empty()
 
-# sidebar
-is_debug = st.sidebar.checkbox("Debug")
-
-if is_debug:
-    os.environ["DEBUG"] = "True"
 
 st.session_state.checkbox_new_collection = st.sidebar.checkbox(
     "Create new collection", value=st.session_state.checkbox_new_collection
@@ -150,7 +146,7 @@ if st.session_state.uploaded_file is not None:
     # remove path before loading
     new_file_name = remove_path_from_ref(st.session_state.uploaded_file.name)
 
-    if is_debug:
+    if VERBOSE:
         logger.info("Selected collection: %s...", collection_name)
 
     if (st.session_state.checkbox_new_collection) or (
@@ -180,12 +176,12 @@ if st.session_state.uploaded_file is not None:
                 "Error: file %s not loaded...", st.session_state.uploaded_file.name
             )
     else:
-        if is_debug:
+        if VERBOSE:
             logger.info("File: %s already loaded", st.session_state.uploaded_file.name)
         st.info("File already loaded !")
 
 # handle deletion
-if ph_butt1.button("Drop selected docs.."):
+if ph_butt1.button("Drop selected docs."):
     if len(sel_rows) > 0:
 
         delete_documents_in_collection(

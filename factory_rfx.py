@@ -33,18 +33,6 @@ from config_private import COMPARTMENT_ID, COHERE_API_KEY
 logger = get_console_logger()
 
 
-def compute_total_chars(preamble, question, documents, response):
-    """
-    compute the total n. of chars exchanged with llm
-    """
-    tot_chars = len(preamble) + len(question) + len(get_text_from_response(response))
-
-    for doc in documents:
-        tot_chars += len(doc)
-
-    return tot_chars
-
-
 def format_docs_for_cohere(l_docs):
     """ "
     format documents in the format expected by Cohere command-r/plus
@@ -98,11 +86,14 @@ def get_task_step1(query):
     return task
 
 
-def get_text_from_response(response):
+def get_text_from_response(response, llm_model):
     """
     extract text from OCI response
     """
-    return response.data.chat_response.text
+    if llm_model.startswith("cohere"):
+        return response.data.chat_response.text
+    else:
+        return response.content
 
 
 def get_citations_from_response(response):
@@ -215,7 +206,7 @@ def hyde_rag(
     response1 = chat.invoke(query=task, chat_history=[], documents=[])
 
     # this is the hypotethical doc produced by step1
-    hyde_doc = get_text_from_response(response1)
+    hyde_doc = get_text_from_response(response1, llm_model)
 
     # step 2
     # do the semantic search searching for docs similar to hyde_doc
@@ -263,16 +254,19 @@ def classic_rag(
 
         response = chat.invoke(query=query, chat_history=[], documents=documents_txt)
 
-        tot_chars = compute_total_chars(
-            preamble_dict[f"preamble_{lang}"], query, documents_txt, response
-        )
-
-        logger.info("Total characters to/from LLM: %s", tot_chars)
-        logger.info("")
     else:
         # meta
-        sysMsg = SystemMessage(content=preamble_dict[f"preamble_{lang}"])
+        context = "Use the following context: \n"
 
-        raise NotImplementedError("LlamaIndex support non yet implemented.")
+        for doc in docs:
+            context += doc.page_content + "\n"
+
+        messages = [
+            SystemMessage(content=preamble_dict[f"preamble_{lang}"]),
+            SystemMessage(content=context),
+            HumanMessage(content=query),
+        ]
+
+        response = chat.invoke(messages)
 
     return response
