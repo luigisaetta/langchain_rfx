@@ -4,7 +4,6 @@ Document Loader for RAG
 for now it manages only 23AI as Vector Store
 """
 
-import os
 import pandas as pd
 import streamlit as st
 

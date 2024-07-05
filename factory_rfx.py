@@ -5,7 +5,7 @@ Factory methods implementation based on OCI Cohere
 
 from langchain_cohere import CohereRerank
 from langchain.retrievers import ContextualCompressionRetriever
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 
 from oci_cohere_embeddings_utils import OCIGenAIEmbeddingsWithBatch
@@ -92,8 +92,9 @@ def get_text_from_response(response, llm_model):
     """
     if llm_model.startswith("cohere"):
         return response.data.chat_response.text
-    else:
-        return response.content
+
+    # here it is Llama3
+    return response.content
 
 
 def get_citations_from_response(response):
@@ -236,7 +237,6 @@ def classic_rag(
     """
     Do the classic rag
     """
-    logger = get_console_logger()
 
     # this doesn't change
     retriever = get_retriever(add_reranker, selected_collection)
