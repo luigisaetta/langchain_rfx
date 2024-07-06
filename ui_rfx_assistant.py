@@ -24,8 +24,8 @@ from config_private import DB_USER, DB_PWD, DB_HOST_IP, DB_SERVICE
 # the name of the column with all the questions
 QUESTION_COL_NAME = "Question"
 
-# TODO: remove in longer tests
-LIMITS = 99
+# use to reduce in tests
+LIMITS = 9999
 
 
 def reset_ui():

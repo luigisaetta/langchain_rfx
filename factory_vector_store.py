@@ -45,7 +45,7 @@ def get_vector_store(
     local_index_dir, books_dir only needed for FAISS
     """
 
-    check_value_in_list(vector_store_type, ["OPENSEARCH", "23AI", "QDRANT"])
+    check_value_in_list(vector_store_type, ["OPENSEARCH", "23AI"])
 
     logger = logging.getLogger("ConsoleLogger")
 
