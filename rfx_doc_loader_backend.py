@@ -79,7 +79,9 @@ def write_temporary_file(v_tmp_dir_name, v_uploaded_file):
     return temp_file_path
 
 
-def load_uploaded_file_in_vector_store(v_uploaded_file, collection_name):
+def load_uploaded_file_in_vector_store(
+    v_uploaded_file, collection_name, chunk_size, chunk_overlap
+):
     """
     load the uploaded file in the Vector Store and index
 
@@ -94,7 +96,7 @@ def load_uploaded_file_in_vector_store(v_uploaded_file, collection_name):
         temp_file_path = write_temporary_file(tmp_dir_name, v_uploaded_file)
 
         # split in docs and prepare for loading
-        docs = load_book_and_split(temp_file_path)
+        docs = load_book_and_split(temp_file_path, chunk_size, chunk_overlap)
 
     # check if collection exists
     if collection_name in get_list_collections():

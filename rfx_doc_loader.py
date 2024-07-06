@@ -15,7 +15,7 @@ from rfx_doc_loader_backend import (
 )
 
 from utils import get_console_logger, remove_path_from_ref
-from config import VERBOSE
+from config import VERBOSE, CHUNK_SIZE, CHUNK_OVERLAP
 
 # configs
 DOC_NAME_COL = "Document name"
@@ -136,6 +136,14 @@ if st.session_state.checkbox_new_collection:
 else:
     collection_name = st.session_state.selected_collection
 
+# 06/07 added chunks parameter
+chunk_size = st.sidebar.slider(
+    "Chunk size (in char)", 500, 5000, value=CHUNK_SIZE, step=50
+)
+chunk_overlap = st.sidebar.slider(
+    "Chunk overlap (in char)", 50, 300, value=CHUNK_OVERLAP, step=50
+)
+
 # loading file
 st.session_state.uploaded_file = st.sidebar.file_uploader(
     "Choose a pdf file to add", type=["pdf"]
@@ -155,7 +163,10 @@ if st.session_state.uploaded_file is not None:
 
         with st.spinner("Loading in progress.."):
             STATUS = load_uploaded_file_in_vector_store(
-                st.session_state.uploaded_file, collection_name
+                st.session_state.uploaded_file,
+                collection_name,
+                chunk_size,
+                chunk_overlap,
             )
 
         if STATUS == "OK":

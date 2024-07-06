@@ -26,7 +26,6 @@ from config import (
     MAX_TOKENS,
     TOP_K,
     TOP_N,
-    VERBOSE,
 )
 from config_private import COMPARTMENT_ID, COHERE_API_KEY
 
@@ -186,7 +185,7 @@ def hyde_rag(
     temperature=TEMPERATURE,
 ):
     """
-    This method supports the implementation of hyde
+    This method supports the implementation of HyDE
     see: https://arxiv.org/abs/2212.10496
     """
 

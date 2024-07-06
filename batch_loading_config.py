@@ -6,4 +6,4 @@ config for batch_loading
 BOOKS_DIR = "./books"
 
 # teh new collection that will be created
-NEW_COLLECTION_NAME = "OGGI14"
+NEW_COLLECTION_NAME = "OGGI15"

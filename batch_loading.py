@@ -19,6 +19,8 @@ from utils import get_console_logger
 
 from batch_loading_config import BOOKS_DIR, NEW_COLLECTION_NAME
 
+from config import CHUNK_SIZE, CHUNK_OVERLAP
+
 #
 # Main
 #
@@ -51,7 +53,7 @@ docs = []
 
 for book in books_list:
     logger.info("Chunking: %s", book)
-    docs += load_book_and_split(book)
+    docs += load_book_and_split(book, CHUNK_SIZE, CHUNK_OVERLAP)
 
 if len(docs) > 0:
     logger.info("Loading documents in collection %s", NEW_COLLECTION_NAME)
