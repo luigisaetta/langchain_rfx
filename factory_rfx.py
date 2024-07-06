@@ -200,29 +200,48 @@ def hyde_rag(
     # formulate the task
     task = get_task_step1(query)
 
-    # resetting preamble
-    chat.preamble_override = None
+    if llm_model.startswith("cohere"):
+        # resetting preamble
+        chat.preamble_override = None
 
-    # get the hyde doc
-    response1 = chat.invoke(query=task, chat_history=[], documents=[])
+        # get the hyde doc
+        response1 = chat.invoke(query=task, chat_history=[], documents=[])
 
-    # this is the hypotethical doc produced by step1
-    hyde_doc = get_text_from_response(response1, llm_model)
+        # this is the hypotethical doc produced by step1
+        hyde_doc = get_text_from_response(response1, llm_model)
 
-    # step 2
-    # do the semantic search searching for docs similar to hyde_doc
-    docs = retriever.invoke(hyde_doc)
+        # step 2
+        # do the semantic search searching for docs similar to hyde_doc
+        docs = retriever.invoke(hyde_doc)
 
-    documents_txt = format_docs_for_cohere(docs)
+        documents_txt = format_docs_for_cohere(docs)
 
-    # print("Step 2...")
-    # choose the preamble based on target language
-    if VERBOSE:
-        logger.info("Lang: %s", lang)
+        # print("Step 2...")
+        # choose the preamble based on target language
+        chat.preamble_override = preamble_dict[f"preamble_{lang}"]
 
-    chat.preamble_override = preamble_dict[f"preamble_{lang}"]
+        response2 = chat.invoke(query=query, chat_history=[], documents=documents_txt)
+    else:
+        # meta
+        response1 = chat.invoke([HumanMessage(task)])
 
-    response2 = chat.invoke(query=query, chat_history=[], documents=documents_txt)
+        hyde_doc = get_text_from_response(response1, llm_model)
+
+        docs = retriever.invoke(hyde_doc)
+
+        context = (
+            "Use the following context: \n"
+            + "\n".join(doc.page_content for doc in docs)
+            + "\n"
+        )
+
+        messages = [
+            SystemMessage(content=preamble_dict[f"preamble_{lang}"]),
+            SystemMessage(content=context),
+            HumanMessage(content=query),
+        ]
+
+        response2 = chat.invoke(messages)
 
     return response2
 
@@ -256,10 +275,11 @@ def classic_rag(
 
     else:
         # meta
-        context = "Use the following context: \n"
-
-        for doc in docs:
-            context += doc.page_content + "\n"
+        context = (
+            "Use the following context: \n"
+            + "\n".join(doc.page_content for doc in docs)
+            + "\n"
+        )
 
         messages = [
             SystemMessage(content=preamble_dict[f"preamble_{lang}"]),
