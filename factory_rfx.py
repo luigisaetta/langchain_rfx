@@ -114,7 +114,7 @@ def get_documents_from_response(response):
     return extract_document_list(response)
 
 
-def get_llm(llm_model):
+def get_llm(llm_model, temperature=TEMPERATURE):
     """
     return the llm model
 
@@ -129,7 +129,7 @@ def get_llm(llm_model):
             service_endpoint=ENDPOINT,
             compartment_id=COMPARTMENT_ID,
             max_tokens=MAX_TOKENS,
-            temperature=TEMPERATURE,
+            temperature=temperature,
             is_streaming=False,
         )
     elif llm_model.startswith("meta"):
@@ -139,7 +139,7 @@ def get_llm(llm_model):
             service_endpoint=ENDPOINT,
             compartment_id=COMPARTMENT_ID,
             is_stream=False,
-            model_kwargs={"temperature": TEMPERATURE, "max_tokens": MAX_TOKENS},
+            model_kwargs={"temperature": temperature, "max_tokens": MAX_TOKENS},
         )
     return chat
 
@@ -183,6 +183,7 @@ def hyde_rag(
     add_reranker=False,
     lang="en",
     selected_collection="ORACLE_KNOWLEDGE",
+    temperature=TEMPERATURE,
 ):
     """
     This method supports the implementation of hyde
@@ -192,7 +193,7 @@ def hyde_rag(
     # this doesn't change
     retriever = get_retriever(add_reranker, selected_collection)
 
-    chat = get_llm(llm_model)
+    chat = get_llm(llm_model, temperature)
 
     # Hyde step1: ask to the llm to answer to the query
     # creating an hypothetical document
@@ -252,6 +253,7 @@ def classic_rag(
     add_reranker=False,
     lang="en",
     selected_collection="ORACLE_KNOWLEDGE",
+    temperature=TEMPERATURE,
 ):
     """
     Do the classic rag
@@ -262,7 +264,7 @@ def classic_rag(
 
     docs = retriever.invoke(query)
 
-    chat = get_llm(llm_model)
+    chat = get_llm(llm_model, temperature)
 
     if llm_model.startswith("cohere"):
         # using Cohere native interface for citations

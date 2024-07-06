@@ -1,7 +1,7 @@
 """
 Author: Luigi Saetta
 Date created: 2024-04-27
-Date last modified: 2024-04-27
+Date last modified: 2024-07-06
 Python Version: 3.11
 """
 
@@ -21,9 +21,6 @@ ENABLE_TRACING = False
 # in chars
 CHUNK_SIZE = 2000
 CHUNK_OVERLAP = 200
-
-# per ora usiamo il tokenizer di Cohere...
-TOKENIZER = "Cohere/Cohere-embed-multilingual-v3.0"
 
 # OCI GenAI model used for Embeddings
 # to batch embedding with OCI
@@ -62,15 +59,12 @@ EMBEDDINGS_BITS = 32
 # Vector Store
 # VECTOR_STORE_TYPE = "OPENSEARCH"
 VECTOR_STORE_TYPE = "23AI"
-# VECTOR_STORE_TYPE = "QDRANT"
 
 # OPENSEARCH
 # using local as docker
 OPENSEARCH_URL = "https://localhost:9200"
 OPENSEARCH_INDEX_NAME = "med01"
 
-# QDRANT local
-QDRANT_URL = "http://localhost:6333"
 
 # 23AI
 # the name of the table with text and embeddings

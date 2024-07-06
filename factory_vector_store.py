@@ -14,20 +14,15 @@ import logging
 import oracledb
 
 from langchain_community.vectorstores import OpenSearchVectorSearch
-from langchain_community.vectorstores import Qdrant
 
 # from langchain_community.vectorstores.oraclevs import OracleVS
 from langchain_community.vectorstores.utils import DistanceStrategy
 
-# Qdrant
-from qdrant_client import QdrantClient
 
 from oraclevs_4_rfx import OracleVS4RFX
 from utils import check_value_in_list
 
 from config import (
-    COLLECTION_NAME,
-    QDRANT_URL,
     # shared params for opensearch
     OPENSEARCH_SHARED_PARAMS,
 )
@@ -81,12 +76,6 @@ def get_vector_store(
             err_msg = "An error occurred in get_vector_store: " + str(e)
             logger.error(err_msg)
 
-    # 10/05: added qdrant
-    elif vector_store_type == "QDRANT":
-        client = QdrantClient(url=QDRANT_URL)
-
-        v_store = Qdrant(
-            client, collection_name=COLLECTION_NAME, embeddings=embed_model
-        )
+    # 06/07: removed qdrant
 
     return v_store

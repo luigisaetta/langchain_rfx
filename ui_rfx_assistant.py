@@ -229,6 +229,8 @@ enable_hyde = st.sidebar.checkbox(translate("Enable HyDE", lang))
 if llm_model.startswith("cohere"):
     enable_citations = st.sidebar.checkbox(translate("Enable citations", lang))
 
+temperature = st.sidebar.slider("Temperature", 0.0, 1.0, 0.1, step=0.1)
+
 # Init list of collections
 oraclecs_collections_list = get_list_collections(VECTOR_STORE_TYPE)
 selected_collection = st.sidebar.selectbox(
@@ -305,6 +307,7 @@ if uploaded_file is not None:
                 add_reranker=add_reranker,
                 lang=lang,
                 selected_collection=selected_collection,
+                temperature=temperature,
             )
         else:
             response = classic_rag(
@@ -313,6 +316,7 @@ if uploaded_file is not None:
                 add_reranker=add_reranker,
                 lang=lang,
                 selected_collection=selected_collection,
+                temperature=temperature,
             )
 
         # we pass the name of the model because, in current implementation
