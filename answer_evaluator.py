@@ -41,6 +41,7 @@ The 'Criteria' column should be wide enough to accommodate the longest text, wit
 
 """
 
+# the model we're using as Judge
 COMPARATOR_MODEL = "cohere.command-r-plus"
 
 # number of docs retrieved
@@ -52,6 +53,9 @@ COLLECTION = "MY_BOOKS"
 #
 logger = get_console_logger()
 
+# input (3 cols: question, answer1, answer2)
+INPUT_FILE = "./data/answer_comp_commandr_llama3.xlsx"
+
 # setup models
 embed_model = get_embed_model()
 
@@ -62,15 +66,16 @@ chat.preamble_override = PREAMBLE
 # make it fully deterministic
 chat.top_k = 1
 chat.top_p = 1
+# want streaming mode
+chat.is_streaming = True
 
-# input (3 cols: question, answer1, answer2)
-INPUT_FILE = "./data/answer_comp_commandr_llama3.xlsx"
-
+# read input file
 answ_df = pd.read_excel(INPUT_FILE)
 
 print("")
 print("")
 
+# process
 for index, row in enumerate(answ_df.itertuples(index=False), start=1):
     logger.info("Evaluating n. %s", index)
     QUERY = row.question
@@ -87,6 +92,12 @@ for index, row in enumerate(answ_df.itertuples(index=False), start=1):
         f"{ANSW2}\n"
     )
 
+    print("Query: ", QUERY)
+    print("")
+    print("-" * 50)
+    print("          Evaluation results ")
+    print("-" * 50)
+
     # here we do the search
     docs = v_store.similarity_search(query=QUERY, k=TOP_K)
 
@@ -94,10 +105,8 @@ for index, row in enumerate(answ_df.itertuples(index=False), start=1):
     c_docs = format_docs_for_cohere(docs)
 
     # invoke the chat model for the comparison
-    result = chat.invoke(query=REQUEST, chat_history=[], documents=c_docs)
+    response = chat.invoke(query=REQUEST, chat_history=[], documents=c_docs)
 
-    print("-" * 50)
-    print("          Evaluation results ")
-    print("-" * 50)
-    print(result.data.chat_response.text)
+    chat.print_response(response)
+
     print("")
