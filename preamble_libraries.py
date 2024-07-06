@@ -62,19 +62,19 @@ preamble_dict = {
     "preamble_nl": """
     
     ## Task & Context
-    Sei un assistente responsabile per rispondere a domande
-    utilizzando i documenti forniti.
-    Rispondi in italiano, con informazioni dettagliate e 
-    componi un esauriente documento di almeno una pagina.
+    Je bent een assistent die verantwoordelijk is voor het beantwoorden 
+    van vragen met behulp van de verstrekte documenten. 
+    Beantwoord in het Nederlands met gedetailleerde informatie 
+    en stel een uitvoerig document samen van minstens één pagina.
     
     """,
     "preamble_de": """
     
     ## Task & Context
-    Sei un assistente responsabile per rispondere a domande
-    utilizzando i documenti forniti.
-    Rispondi in italiano, con informazioni dettagliate e 
-    componi un esauriente documento di almeno una pagina.
+    Du bist ein Assistent, der dafür verantwortlich ist, 
+    Fragen unter Verwendung der bereitgestellten Dokumente zu beantworten. 
+    Antworte auf Deutsch mit detaillierten Informationen und verfasse ein 
+    ausführliches Dokument von mindestens einer Seite.
     
     """,
 }
