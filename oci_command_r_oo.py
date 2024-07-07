@@ -69,6 +69,7 @@ class OCICommandR(BaseChatModel):
     is_streaming: Optional[bool] = False
     is_search_queries_only: Optional[bool] = (False,)
     """if true generate only a condensed query using chat_history"""
+    seed: Optional[int] = 4321
 
     def __init__(
         self,
@@ -84,6 +85,7 @@ class OCICommandR(BaseChatModel):
         preamble_override: Optional[str] = None,
         is_search_queries_only: Optional[bool] = False,
         is_streaming: Optional[bool] = False,
+        seed: int = 4321,
     ):
         """
         model: the id of the model
@@ -105,6 +107,7 @@ class OCICommandR(BaseChatModel):
             preamble_override=preamble_override,
             is_search_queries_only=is_search_queries_only,
             is_streaming=is_streaming,
+            seed=seed,
         )
 
         # init the client to OCI
@@ -120,45 +123,30 @@ class OCICommandR(BaseChatModel):
         chat_history: list of previous messages
         documents: list of documents to use as Context
         """
-
-        chat_request = CohereChatRequest()
-
-        # parameters
-
-        # override the preamble
-        chat_request.preamble_override = self.preamble_override
-        chat_request.is_search_queries_only = self.is_search_queries_only
-
-        # if search_query_only
-
-        # control the max length of the answer from LLM
-        chat_request.max_tokens = self.max_tokens
-
-        chat_request.is_stream = self.is_streaming
-
-        # to control creativity
-        chat_request.temperature = self.temperature
-        chat_request.top_p = self.top_p
-        chat_request.top_k = self.top_k
-        # chat_request.frequency_penalty = 1.0
-
-        # here we set the user's request
-        chat_request.message = query
-
-        chat_request.chat_history = chat_history
-
-        # documents to use for answering
-        chat_request.documents = documents
-
-        chat_detail = ChatDetails()
-
-        chat_detail.serving_mode = OnDemandServingMode(
-            # here we set the model
-            model_id=self.model
+        # LS 07/07/2024, more OO
+        chat_request = CohereChatRequest(
+            # override the preamble
+            preamble_override=self.preamble_override,
+            is_search_queries_only=self.is_search_queries_only,
+            max_tokens=self.max_tokens,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            top_k=self.top_k,
+            seed=self.seed,
+            message=query,
+            chat_history=chat_history,
+            documents=documents,
+            is_stream=self.is_streaming,
         )
-        chat_detail.compartment_id = self.compartment_id
 
-        chat_detail.chat_request = chat_request
+        chat_detail = ChatDetails(
+            serving_mode=OnDemandServingMode(
+                # here we set the model
+                model_id=self.model
+            ),
+            compartment_id=self.compartment_id,
+            chat_request=chat_request,
+        )
 
         #
         # here we call the LLM

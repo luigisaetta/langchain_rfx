@@ -20,17 +20,18 @@ Relevance: Which answer is more relevant to the question asked?
 Clarity: Which answer is clearer and easier to understand?
 
 ## Task
-Based on the provided criteria, compare the two answers. 
+Based on the provided criteria, compare the two answers.
 Highlight the strengths and weaknesses of each answer in relation to the documentation and criteria.
 Provide a score, in the range 0-10, for each of the criteria (accuracy, completeness, relevance, clarity)
 and provide also an overall score.
 
-Summarize the scores for the criteria and the two answers in a table organized
+Summarize the scores for the criteria and the two answers in a single table organized
 in a column for each answer and using as rows the comparison criteria.
 Ensure that the table is neatly formatted, 
 with aligned columns and uniform field widths.
 
 This is an example of the table to be produced with the required formatting
+
 | Criteria     | Answer 1 | Answer 2 |
 |--------------|----------|----------|
 | Accuracy     |    8     |    9     |
@@ -38,6 +39,7 @@ This is an example of the table to be produced with the required formatting
 | Relevance    |    8     |    9     |
 | Clarity      |    8     |    9     |
 | Overall      |  7.75    |  9.25    |
+
 The 'Criteria' column should be wide enough to accommodate the longest text, with values left-aligned.
 
 """
@@ -94,7 +96,7 @@ for index, row in enumerate(answ_df.itertuples(index=False), start=1):
     ANSW1 = row.answer1
     ANSW2 = row.answer2
 
-    # the requst with the task for the model
+    # the request with the task for the model
     REQUEST = (
         f"Question:\n"
         f"{QUERY}\n\n"
@@ -117,6 +119,7 @@ for index, row in enumerate(answ_df.itertuples(index=False), start=1):
     c_docs = format_docs_for_cohere(docs)
 
     # invoke the chat model for the comparison
+    # the preamble has been set, with the instructions
     response = chat.invoke(query=REQUEST, chat_history=[], documents=c_docs)
 
     chat.print_response(response)
