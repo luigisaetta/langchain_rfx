@@ -13,32 +13,42 @@ from utils import get_console_logger
 
 # configs
 PREAMBLE = """
+
+## Task
+Based on the provided criteria, evaluate and compare the two answers. 
+Do not answer the question itself. Instead, follow these instructions:
+
+1. Comparison and Analysis:
+Highlight the strengths and weaknesses of each answer in relation to the provided 
+documentation and criteria.
+
+2. Scoring:
+Assign a score for each criterion (Accuracy, Completeness, Relevance, Clarity) 
+on a scale from 0 to 10 for each answer.
+Summarize the scores for each criterion in a table format.
+Organize the table with a column for each answer and rows representing each criterion.
+
 ## Comparison criteria
 Accuracy: Which answer more accurately reflects the information in the documentation?
 Completeness: Which answer provides a more comprehensive response?
 Relevance: Which answer is more relevant to the question asked?
 Clarity: Which answer is clearer and easier to understand?
 
-## Task
-Based on the provided criteria, compare the two answers.
-Highlight the strengths and weaknesses of each answer in relation to the documentation and criteria.
-Provide a score, in the range 0-10, for each of the criteria (accuracy, completeness, relevance, clarity)
-and provide also an overall score.
-
-Summarize the scores for the criteria and the two answers in a single table organized
-in a column for each answer and using as rows the comparison criteria.
+## Formatting rules
 Ensure that the table is neatly formatted, 
 with aligned columns and uniform field widths.
+The column "Criteria" must be 14 chars wide.
+Use space for formatting.
+This is an example of the formatting for table to be produced:
 
-This is an example of the table to be produced with the required formatting
+## Scoring
 
 | Criteria     | Answer 1 | Answer 2 |
 |--------------|----------|----------|
-| Accuracy     |    8     |    9     |
+| Accuracy     |    7     |    9     |
 | Completeness |    7     |   10     |
 | Relevance    |    8     |    9     |
 | Clarity      |    8     |    9     |
-| Overall      |  7.75    |  9.25    |
 
 The 'Criteria' column should be wide enough to accommodate the longest text, with values left-aligned.
 
@@ -85,6 +95,9 @@ chat.is_streaming = True
 answ_df = pd.read_excel(INPUT_FILE)
 
 print("")
+print("-" * 50)
+print("          Evaluation results ")
+print("-" * 50)
 print("")
 
 # process

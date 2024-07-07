@@ -201,7 +201,8 @@ class OCICommandR(BaseChatModel):
         """Get the identifying parameters."""
         return self._default_params
 
-    # We need this, for LangChain compatibility... complete !
+    # We need this, for LangChain compatibility...
+    # not implemented for now
     def _generate(
         self,
         messages: List[BaseMessage],
