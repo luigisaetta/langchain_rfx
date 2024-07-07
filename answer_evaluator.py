@@ -47,7 +47,7 @@ COMPARATOR_MODEL = "cohere.command-r-plus"
 
 # number of docs retrieved
 TOP_K = 8
-COLLECTION = "MY_BOOKS"
+COLLECTION = "CLOUD_COACHING"
 
 #
 # Main
@@ -87,7 +87,9 @@ print("")
 
 # process
 for index, row in enumerate(answ_df.itertuples(index=False), start=1):
-    logger.info("Evaluating n. %s", index)
+    logger.info("Evaluating for request n. %s", index)
+    logger.info("")
+
     QUERY = row.question
     ANSW1 = row.answer1
     ANSW2 = row.answer2
