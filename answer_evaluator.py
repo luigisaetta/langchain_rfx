@@ -3,6 +3,7 @@ Answer evaluation tool:
 
 """
 
+import argparse
 import pandas as pd
 
 from factory_vector_store import get_vector_store
@@ -53,8 +54,17 @@ COLLECTION = "MY_BOOKS"
 #
 logger = get_console_logger()
 
+# handle input for new_collection_name from command line
+parser = argparse.ArgumentParser(description="Answers' evaluation.")
+
+parser.add_argument("input_file", type=str, help="Input file (xlsx).")
+
+args = parser.parse_args()
+
+INPUT_FILE = args.input_file
+
 # input (3 cols: question, answer1, answer2)
-INPUT_FILE = "./data/answer_comp_commandr_llama3.xlsx"
+# INPUT_FILE = "./data/answer_comp_commandr_llama3.xlsx"
 
 # setup models
 embed_model = get_embed_model()

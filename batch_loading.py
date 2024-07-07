@@ -30,10 +30,12 @@ from config import CHUNK_SIZE, CHUNK_OVERLAP
 parser = argparse.ArgumentParser(description="Document batch loading.")
 
 parser.add_argument("new_collection_name", type=str, help="New collection name.")
+parser.add_argument("books_dir", type=str, help="Dir with the books to load.")
 
 args = parser.parse_args()
 
 new_collection_name = args.new_collection_name
+BOOKS_DIR = args.books_dir
 
 logger = get_console_logger()
 
