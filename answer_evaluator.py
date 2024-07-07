@@ -96,14 +96,12 @@ answ_df = pd.read_excel(INPUT_FILE)
 
 print("")
 print("-" * 50)
-print("          Evaluation results ")
+print("              Evaluation Report")
 print("-" * 50)
 print("")
 
 # process
 for index, row in enumerate(answ_df.itertuples(index=False), start=1):
-    logger.info("Evaluating for request n. %s", index)
-    logger.info("")
 
     QUERY = row.question
     ANSW1 = row.answer1
@@ -119,11 +117,12 @@ for index, row in enumerate(answ_df.itertuples(index=False), start=1):
         f"{ANSW2}\n"
     )
 
+    print("-" * 50)
+    print("        Evaluation results for query n. ", index)
+    print("-" * 50)
+    print("")
     print("Query: ", QUERY)
     print("")
-    print("-" * 50)
-    print("          Evaluation results ")
-    print("-" * 50)
 
     # here we do the search
     docs = v_store.similarity_search(query=QUERY, k=TOP_K)
