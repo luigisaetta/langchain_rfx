@@ -8,6 +8,7 @@ Can be used ONLY for a new collection.
 import sys
 import argparse
 from glob import glob
+import numpy as np
 
 from chunk_index_utils import (
     load_book_and_split,
@@ -21,6 +22,24 @@ from utils import get_console_logger
 from batch_loading_config import BOOKS_DIR
 
 from config import CHUNK_SIZE, CHUNK_OVERLAP
+
+
+def compute_stats(list_docs):
+    """
+    Compute stats for the distribution of chunks' lengths
+
+    list_docs: LangChain list of Documents
+    """
+    lengths = [len(d.page_content) for d in list_docs]
+
+    mean_length = round(np.mean(lengths), 1)
+
+    std_dev = round(np.std(lengths), 1)
+
+    perc_75_len = round(np.percentile(lengths, 75), 1)
+
+    return mean_length, std_dev, perc_75_len
+
 
 #
 # Main
@@ -62,6 +81,17 @@ logger.info("")
 # the list of books to be loaded
 books_list = glob(BOOKS_DIR + "/*.pdf")
 
+logger.info("This books will be loaded:")
+for book in books_list:
+    logger.info(book)
+
+logger.info("")
+
+logger.info("These are the parameters used for chunking:")
+logger.info("Chunk size: %s", CHUNK_SIZE)
+logger.info("Chunk overlap: %s", CHUNK_OVERLAP)
+logger.info("")
+
 docs = []
 
 for book in books_list:
@@ -76,6 +106,16 @@ if len(docs) > 0:
 
     logger.info("Loading completed.")
     logger.info("")
+
+    mean, stdev, perc_75 = compute_stats(docs)
+
+    logger.info("")
+    logger.info("Statistics for the distribution of chunks' lengths:")
+    logger.info("Mean: %s (chars)", mean)
+    logger.info("Std dev: %s (chars)", stdev)
+    logger.info("75-perc. : %s (chars)", perc_75)
+    logger.info("")
+
 else:
     logger.info("No document to load!")
     logger.info("")
