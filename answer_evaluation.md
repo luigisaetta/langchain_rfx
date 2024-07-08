@@ -1,5 +1,5 @@
 
-Question 1: What is Oracle AI Vector search?
+# Question 1: What is Oracle AI Vector search?
 
 Answer1:
 Oracle AI Vector Search is designed for Artificial Intelligence (AI) workloads. It allows users to query data based on semantics rather than keywords, combining relational searches on business data with semantic searches on unstructured data in one system. 
@@ -42,7 +42,7 @@ Oracle AI Vector Search provides a set of PL/SQL packages, including DBMS_VECTOR
 
 In summary, Oracle AI Vector Search is a powerful solution that enables users to search and retrieve data based on its semantic meaning, combining the benefits of AI-driven search with traditional relational search capabilities.
 
-Question2: In the context of LLM what is HyDE? Write a one page document explaining what HyDE is and why it could improve the quality of the answers.
+# Question2: In the context of LLM what is HyDE? Write a one page document explaining what HyDE is and why it could improve the quality of the answers.
 
 Answer1:
 ## HyDE and LLMs
@@ -87,7 +87,7 @@ HyDE offers several advantages over traditional querying methods:
 HyDE is a promising approach to enhance answer retrieval in Large Language Models. By generating hypothetical documents and leveraging their embeddings, HyDE can improve the quality of answers by providing more contextually rich and relevant responses. As LLMs continue to evolve, incorporating HyDE into their architecture can lead to significant advancements in their ability to provide accurate and informative answers.
 
 
-Question3: What is JSON Duality? Write a one page document describing the most relevant feature
+# Question3: What is JSON Duality? Write a one page document describing the most relevant feature
 
 Answer1:
 JSON Duality is a feature of the Oracle Database that simplifies the process of building applications. It enables users to access relational data as JSON documents, while the data itself remains stored in efficient, normalised relational tables. This 'duality' view is updateable and provides flexibility and simplicity by removing historical challenges of using relational or document models.
