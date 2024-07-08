@@ -18,6 +18,7 @@ translations = {
         "Add reranker": "Add reranker",
         "Enable HyDE": "Enable HyDE",
         "Enable citations": "Enable citations",
+        "Temperature": "Temperature",
     },
     "it": {
         "Choose an xls file": "Scegli un file xls!",
@@ -34,6 +35,7 @@ translations = {
         "Add reranker": "Aggiungi reranker",
         "Enable HyDE": "Abilita HyDE",
         "Enable citations": "Abilita citazioni",
+        "Temperature": "Temperatura",
     },
     "es": {
         "Choose an xls file": "Elija un archivo xls",
@@ -50,6 +52,7 @@ translations = {
         "Add reranker": "Agregar reranker",
         "Enable HyDE": "Habilitar HyDE",
         "Enable citations": "Habilitar citas",
+        "Temperature": "Temperatura",
     },
     "fr": {
         "Choose an xls file": "Choisissez un fichier xls",

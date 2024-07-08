@@ -20,7 +20,7 @@ ENABLE_TRACING = False
 # for chunking
 # in chars
 CHUNK_SIZE = 2000
-CHUNK_OVERLAP = 200
+CHUNK_OVERLAP = 100
 
 # OCI GenAI model used for Embeddings
 # to batch embedding with OCI

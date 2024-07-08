@@ -229,7 +229,7 @@ enable_hyde = st.sidebar.checkbox(translate("Enable HyDE", lang))
 if llm_model.startswith("cohere"):
     enable_citations = st.sidebar.checkbox(translate("Enable citations", lang))
 
-temperature = st.sidebar.slider("Temperature", 0.0, 1.0, 0.1, step=0.1)
+temperature = st.sidebar.slider(translate("Temperature", lang), 0.0, 1.0, 0.1, step=0.1)
 
 # Init list of collections
 oraclecs_collections_list = get_list_collections(VECTOR_STORE_TYPE)
@@ -279,6 +279,7 @@ if uploaded_file is not None:
 
         info_placeholder = st.empty()
         info_placeholder.info(translate("Processing started!", lang))
+        out_file_placeholder = st.empty()
 
     with col2:
         st.header(translate("Answers:", lang))
@@ -348,9 +349,6 @@ if uploaded_file is not None:
             # update the progress bar
             progress_bar.progress(int(i + 1) / len(questions))
 
-    with col1:
-        info_placeholder.success(translate("Processing completed!", lang))
-
     # when all questions have been processed, handle output
     dict_out = {"Answers": answers}
     df_out = pd.DataFrame(dict_out)
@@ -359,7 +357,11 @@ if uploaded_file is not None:
         st.dataframe(df_out, hide_index=True)
 
     # save output file
-    create_output_file(questions, answers, uploaded_file.name)
+    out_file_name = create_output_file(questions, answers, uploaded_file.name)
+
+    with col1:
+        info_placeholder.success(translate("Processing completed!", lang))
+        out_file_placeholder.success(f"Results saved in: {out_file_name}")
 
 else:
     st.write(translate("Load the xls file with the questions.", lang))
