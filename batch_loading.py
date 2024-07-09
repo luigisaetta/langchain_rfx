@@ -32,11 +32,11 @@ def compute_stats(list_docs):
     """
     lengths = [len(d.page_content) for d in list_docs]
 
-    mean_length = round(np.mean(lengths), 1)
+    mean_length = int(round(np.mean(lengths), 0))
 
-    std_dev = round(np.std(lengths), 1)
+    std_dev = int(round(np.std(lengths), 0))
 
-    perc_75_len = round(np.percentile(lengths, 75), 1)
+    perc_75_len = int(round(np.percentile(lengths, 75), 0))
 
     return mean_length, std_dev, perc_75_len
 
@@ -81,7 +81,7 @@ logger.info("")
 # the list of books to be loaded
 books_list = glob(BOOKS_DIR + "/*.pdf")
 
-logger.info("This books will be loaded:")
+logger.info("These books will be loaded:")
 for book in books_list:
     logger.info(book)
 
@@ -100,7 +100,7 @@ for book in books_list:
 
 if len(docs) > 0:
     logger.info("")
-    logger.info("Loading documents in collection %s", new_collection_name)
+    logger.info("Embedding and loading documents in collection %s", new_collection_name)
 
     create_collection_and_add_docs_to_23ai(docs, embed_model, new_collection_name)
 
@@ -110,8 +110,9 @@ if len(docs) > 0:
     mean, stdev, perc_75 = compute_stats(docs)
 
     logger.info("")
-    logger.info("Statistics for the distribution of chunks' lengths:")
-    logger.info("Mean: %s (chars)", mean)
+    logger.info("Statistics on the distribution of chunk lengths:")
+    logger.info("Total num. of chunks loaded: %s", len(docs))
+    logger.info("Avg. length : %s (chars)", mean)
     logger.info("Std dev: %s (chars)", stdev)
     logger.info("75-perc. : %s (chars)", perc_75)
     logger.info("")

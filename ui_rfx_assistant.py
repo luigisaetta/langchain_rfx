@@ -15,6 +15,7 @@ from factory_rfx import (
 )
 from translations import translations
 from utils import get_console_logger, remove_path_from_ref
+from output_utils import generate_markdown_file, generate_xlsx_file
 from oraclevs_4_rfx import OracleVS4RFX
 from opensearch_4_rfx import OpenSearchRFX
 
@@ -185,22 +186,6 @@ def read_input_file(file):
     return input_df
 
 
-def create_output_file(all_questions, all_answers, input_file_name):
-    """
-    Save all the results in an xls file
-    """
-    out_dict = {"Questions": all_questions, "Answers": all_answers}
-    out_df = pd.DataFrame(out_dict)
-
-    # take what preceed .xls
-    only_name = input_file_name.split(".")[0]
-    new_name = only_name + "_out.xlsx"
-
-    out_df.to_excel(new_name, index=None)
-
-    return new_name
-
-
 #
 # Main
 #
@@ -224,6 +209,7 @@ model_list = get_model_list()
 llm_model = st.sidebar.selectbox(translate("Select LLM", lang), model_list)
 
 add_reranker = st.sidebar.checkbox(translate("Add reranker", lang))
+enable_hybrid_search = st.sidebar.checkbox(translate("Enable hybrid search", lang))
 enable_hyde = st.sidebar.checkbox(translate("Enable HyDE", lang))
 
 if llm_model.startswith("cohere"):
@@ -306,6 +292,7 @@ if uploaded_file is not None:
                 question,
                 llm_model,
                 add_reranker=add_reranker,
+                hybrid_search=enable_hybrid_search,
                 lang=lang,
                 selected_collection=selected_collection,
                 temperature=temperature,
@@ -315,6 +302,7 @@ if uploaded_file is not None:
                 question,
                 llm_model,
                 add_reranker=add_reranker,
+                hybrid_search=enable_hybrid_search,
                 lang=lang,
                 selected_collection=selected_collection,
                 temperature=temperature,
@@ -356,12 +344,14 @@ if uploaded_file is not None:
     with col2:
         st.dataframe(df_out, hide_index=True)
 
-    # save output file
-    out_file_name = create_output_file(questions, answers, uploaded_file.name)
+    # save output file in xlsx
+    out_file_name = generate_xlsx_file(questions, answers, uploaded_file.name)
+    # save in md format
+    md_file = generate_markdown_file(questions, answers, uploaded_file.name)
 
     with col1:
         info_placeholder.success(translate("Processing completed!", lang))
-        out_file_placeholder.success(f"Results saved in: {out_file_name}")
+        out_file_placeholder.success(f"Results saved in: {md_file}")
 
 else:
     st.write(translate("Load the xls file with the questions.", lang))
