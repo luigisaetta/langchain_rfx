@@ -1,0 +1,3 @@
+The env to be used: 
+
+rfx_genai
